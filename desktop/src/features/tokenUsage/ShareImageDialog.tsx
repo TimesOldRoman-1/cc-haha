@@ -23,6 +23,7 @@ const THEME_LABEL_KEYS: Record<ThemeMode, TranslationKey> = {
   celadon: 'settings.general.appearance.celadon',
   dark: 'settings.general.appearance.dark',
   'ink-blue': 'settings.general.appearance.inkBlue',
+  deepseek: 'settings.general.appearance.deepseek',
 }
 
 type Props = {

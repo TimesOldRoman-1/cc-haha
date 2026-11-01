@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import css from './globals.css?raw'
-import { THEME_MODES } from '../types/settings'
+import { DARK_THEME_MODES, THEME_MODES } from '../types/settings'
 import { THEME_BACKGROUNDS } from './systemAppearance'
 
 const normalizedCss = css.replace(/\r\n/g, '\n')
@@ -235,8 +235,10 @@ describe('desktop theme tokens', () => {
 
   it('keeps the UI zoom slider thumb visible on both ink grounds', () => {
     // The thumb is a light disc on a light track; on a dark ground it needs an
-    // accent border to read at all. Both dark palettes get the override.
-    expect(css).toContain('[data-theme="dark"] .settings-zoom-control,\n[data-theme="ink-blue"] .settings-zoom-control')
+    // accent border to read at all. Every dark palette gets the override.
+    for (const theme of DARK_THEME_MODES) {
+      expect(css).toContain(`[data-theme="${theme}"] .settings-zoom-control`)
+    }
     expect(css).toContain('--settings-zoom-thumb-bg: var(--color-surface-bright);')
     expect(css).toContain('--settings-zoom-thumb-border: var(--color-brand);')
     expect(css).toContain('box-shadow: var(--settings-zoom-thumb-shadow);')
@@ -550,8 +552,8 @@ describe('terminal palette tokens', () => {
 
   function terminalTokens(theme: string) {
     const blocks = [getThemeBlock(':root')]
-    if (theme === 'dark' || theme === 'ink-blue') {
-      blocks.push(getThemeBlock('[data-theme="dark"],\n[data-theme="ink-blue"]'))
+    if ((DARK_THEME_MODES as readonly string[]).includes(theme)) {
+      blocks.push(getThemeBlock(DARK_THEME_MODES.map((mode) => `[data-theme="${mode}"]`).join(',\n')))
     }
     blocks.push(getThemeBlock(`[data-theme="${theme}"]`))
     const tokens = new Map(Array.from(blocks.join('\n').matchAll(/(--[\w-]+):\s*([^;]+);/g), (match) => [match[1]!, match[2]!.trim()]))

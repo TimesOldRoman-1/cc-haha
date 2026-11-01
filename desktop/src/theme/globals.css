@@ -2,7 +2,7 @@
 @plugin "@tailwindcss/typography";
 
 /* ─── Dark variant binding ────────────────────────────────────────
-   The app has six themes switched via `<html data-theme>`. Following the OS
+   The app has seven themes switched via `<html data-theme>`. Following the OS
    is resolved in JS (src/theme/systemAppearance.ts) and lands on that same
    attribute, so `data-theme` stays the single source of truth here. Without
    this binding, Tailwind's default `dark:` compiles to
@@ -10,10 +10,10 @@
    accident for someone following the system, plainly wrong for anyone on a
    fixed palette.
 
-   Two of the six sit on a dark ground — `dark` and `ink-blue` — so both are
-   listed. Binding only `dark` is how a `dark:` utility would silently render
-   its light branch on ink-blue. */
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, [data-theme="ink-blue"], [data-theme="ink-blue"] *));
+   Three of the seven sit on a dark ground — `dark`, `ink-blue` and `deepseek`
+   — so all are listed. Binding only `dark` is how a `dark:` utility would
+   silently render its light branch on the ink themes. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, [data-theme="ink-blue"], [data-theme="ink-blue"] *, [data-theme="deepseek"], [data-theme="deepseek"] *));
 
 /* ─── Self-hosted fonts (no Google CDN dependency) ────────────── */
 
@@ -265,7 +265,8 @@
 /* On the two ink grounds a light thumb on a light track disappears; the brand
    rim keeps it legible. */
 [data-theme="dark"] .settings-zoom-control,
-[data-theme="ink-blue"] .settings-zoom-control {
+[data-theme="ink-blue"] .settings-zoom-control,
+[data-theme="deepseek"] .settings-zoom-control {
   --settings-zoom-track-empty: var(--color-surface-container-highest);
   --settings-zoom-thumb-bg: var(--color-surface-bright);
   --settings-zoom-thumb-border: var(--color-brand);
@@ -611,7 +612,8 @@
 }
 
 [data-theme="dark"],
-[data-theme="ink-blue"] {
+[data-theme="ink-blue"],
+[data-theme="deepseek"] {
   --color-terminal-ansi-black: #1F1F1F;
   --color-terminal-ansi-red: #FF6D67;
   --color-terminal-ansi-green: #7EF18A;
@@ -1266,6 +1268,91 @@
   --cc-scrim-rgb: 6, 6, 6;
 }
 
+/* 深潮 deepseek — local palette mirroring the DeepSeek Harness dark theme.
+   Source values are the Harness neutral-bluish ramp: ground 950 (#151517),
+   raised layers 875 / 850, hairlines as white at 6-20%, labels 50 / 300 / 400,
+   and the deepseek blue ramp (400 #7AAAFF, 450 #5686FE) for accents. */
+[data-theme="deepseek"] {
+  color-scheme: dark;
+
+  --cc-bg: #151517;
+  --cc-s0: #1B1B1C;
+  --cc-s1: #232324;
+  --cc-s2: #2C2C2E;
+  --cc-bd: #2D2D2F;
+  --cc-bd2: #3A3A3D;
+  /* Control boundary — clears WCAG 1.4.11's 3:1 on the card lining. */
+  --cc-bd-strong: #77797F;
+  /* Tab strip. Trough stays --cc-s0, so these two carry the shape. Both go
+     *lighter* than the trough: pure black is only 1.2:1 against this ground. */
+  --cc-tab-edge: #303032;
+  --cc-tab-sep: #2A2A2C;
+  --cc-t1: #F9FAFB;
+  --cc-t2: #CFD3D6;
+  --cc-t3: #ADB2B8;
+
+  --cc-ac: #7AAAFF;
+  --cc-ac2: #5686FE;
+  --cc-ac-soft: #1E2A3D;
+  --cc-ac-soft-hover: #26354C;
+  --cc-ac-border: #34496B;
+  --cc-ac-ink: #8AB6FF;
+  --cc-on-ac: #0F1115;
+
+  --cc-ok: #4ED17E;
+  --cc-ok-soft: #233C2C;
+  --cc-ok-ink: #4ED17E;
+  --cc-wn: #F7AD31;
+  --cc-wn-soft: #27241F;
+  --cc-wn-ink: #F7AD31;
+  --cc-er: #F25A5A;
+  --cc-er-soft: #3A1F22;
+  --cc-er-soft-hover: #4A2629;
+  --cc-er-ink: #F25A5A;
+  --cc-info: #7AAAFF;
+  --cc-info-soft: #1E2A3D;
+  --cc-info-ink: #8AB6FF;
+
+  --cc-teal: #7DD3C7;
+  --cc-teal-soft: #233330;
+  --cc-teal-border: #345049;
+  --cc-teal-icon: #2B3B38;
+
+  --cc-diff-add: #1F3124;
+  --cc-diff-add-gutter: #132016;
+  --cc-diff-add-word: #2A4030;
+  --cc-diff-del: #3C1F1B;
+  --cc-diff-del-gutter: #28130E;
+  --cc-diff-del-word: #4A2721;
+  --cc-diff-mark: #39301E;
+  --cc-diff-mark-gutter: #443822;
+  --cc-code: #1B1B1C;
+
+  --cc-heat-0: #232324;
+  --cc-heat-1: #2C3E5C;
+  --cc-heat-2: #35578A;
+  --cc-heat-3: #4A78C0;
+  --cc-heat-4: #7AAAFF;
+  --cc-series-1: #5686FE;
+  --cc-series-2: #4ED17E;
+  --cc-series-3: #F7AD31;
+  --cc-series-4: #F25A5A;
+  --cc-series-5: #A2A4A6;
+
+  --cc-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.40), 0 6px 24px rgba(0, 0, 0, 0.40);
+  --cc-shadow-composer: 0 1px 2px rgba(0, 0, 0, 0.50), 0 14px 44px rgba(0, 0, 0, 0.55);
+  --cc-shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.55), 0 24px 64px rgba(0, 0, 0, 0.60);
+
+  --cc-bg-rgb: 21, 21, 23;
+  --cc-s1-rgb: 35, 35, 36;
+  --cc-t1-rgb: 249, 250, 251;
+  --cc-t2-rgb: 207, 211, 214;
+  --cc-bd2-rgb: 58, 58, 61;
+  --cc-ac-rgb: 122, 170, 255;
+  --cc-er-rgb: 242, 90, 90;
+  --cc-scrim-rgb: 6, 6, 8;
+}
+
 /* ─── Semantic layer ──────────────────────────────────────────────
    Every `--color-*` the app consumes is defined exactly once, here, in terms
    of the `--cc-*` source variables above. Adding a theme therefore means
@@ -1617,7 +1704,8 @@
 
 /* Ink themes: lift the syntax ramp off the paper values. */
 [data-theme="dark"],
-[data-theme="ink-blue"] {
+[data-theme="ink-blue"],
+[data-theme="deepseek"] {
   --color-file-typescript-container: #203B55;
   --color-on-file-typescript-container: #92CAF7;
   --color-file-javascript-container: #BFA453;
@@ -3009,7 +3097,8 @@ html[data-window-kind='pet'] #root {
 }
 
 html[data-theme='dark'] .pet-activity-card,
-html[data-theme='ink-blue'] .pet-activity-card {
+html[data-theme='ink-blue'] .pet-activity-card,
+html[data-theme='deepseek'] .pet-activity-card {
   border-color: rgba(255, 255, 255, 0.12);
   background: rgba(24, 23, 30, 0.78);
   box-shadow:
@@ -3051,7 +3140,8 @@ html[data-theme='ink-blue'] .pet-activity-card {
 }
 
 html[data-theme='dark'] .pet-session-list > [role='listitem'] + [role='listitem'],
-html[data-theme='ink-blue'] .pet-session-list > [role='listitem'] + [role='listitem'] {
+html[data-theme='ink-blue'] .pet-session-list > [role='listitem'] + [role='listitem'],
+html[data-theme='deepseek'] .pet-session-list > [role='listitem'] + [role='listitem'] {
   border-top-color: rgba(255, 255, 255, 0.07);
 }
 
@@ -3116,7 +3206,8 @@ html[data-theme='ink-blue'] .pet-session-list > [role='listitem'] + [role='listi
 }
 
 html[data-theme='dark'] .pet-session-row:hover,
-html[data-theme='ink-blue'] .pet-session-row:hover {
+html[data-theme='ink-blue'] .pet-session-row:hover,
+html[data-theme='deepseek'] .pet-session-row:hover {
   background: rgba(255, 255, 255, 0.08);
 }
 
@@ -3189,14 +3280,16 @@ html[data-theme='ink-blue'] .pet-session-row:hover {
 }
 
 html[data-theme='dark'] .pet-panel-toggle,
-html[data-theme='ink-blue'] .pet-panel-toggle {
+html[data-theme='ink-blue'] .pet-panel-toggle,
+html[data-theme='deepseek'] .pet-panel-toggle {
   border-color: rgba(255, 255, 255, 0.18);
   background: rgba(36, 39, 45, 0.82);
   color: rgba(239, 235, 246, 0.62);
 }
 
 html[data-theme='dark'] .pet-panel-toggle:hover,
-html[data-theme='ink-blue'] .pet-panel-toggle:hover {
+html[data-theme='ink-blue'] .pet-panel-toggle:hover,
+html[data-theme='deepseek'] .pet-panel-toggle:hover {
   background: rgba(255, 255, 255, 0.09);
   color: rgba(255, 255, 255, 1);
 }

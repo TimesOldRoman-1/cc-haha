@@ -56,6 +56,7 @@ export const THEME_BACKGROUNDS: Record<ThemeMode, string> = {
   celadon: '#F5F8F5',
   dark: '#201D17',
   'ink-blue': '#1A1D24',
+  deepseek: '#151517',
 }
 
 /**

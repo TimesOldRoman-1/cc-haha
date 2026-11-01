@@ -5,18 +5,19 @@ export type PermissionMode = 'default' | 'acceptEdits' | 'auto' | 'plan' | 'bypa
 export type EffortLevel = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 export type ReasoningEffortLevel = EffortLevel
 /**
- * The six 「纸 · 墨 · 印」 palettes, in the order the appearance picker shows
- * them: four paper grounds, then two ink ones. Each name matches a
+ * The seven 「纸 · 墨 · 印」 palettes, in the order the appearance picker shows
+ * them: four paper grounds, then three ink ones. Each name matches a
  * `[data-theme]` block in theme/globals.css.
  *
  * `light` was the pre-redesign key for the warm workspace; it migrates to
- * `warm-classic` (see lib/persistenceMigrations.ts).
+ * `warm-classic` (see lib/persistenceMigrations.ts). `deepseek` is a local
+ * addition that mirrors the DeepSeek Harness dark palette.
  */
-export const THEME_MODES = ['white', 'paper', 'warm-classic', 'celadon', 'dark', 'ink-blue'] as const
+export const THEME_MODES = ['white', 'paper', 'warm-classic', 'celadon', 'dark', 'ink-blue', 'deepseek'] as const
 export type ThemeMode = (typeof THEME_MODES)[number]
 
-/** The two themes on a dark ground. Drives `color-scheme` and Mermaid. */
-export const DARK_THEME_MODES = ['dark', 'ink-blue'] as const
+/** The three themes on a dark ground. Drives `color-scheme` and Mermaid. */
+export const DARK_THEME_MODES = ['dark', 'ink-blue', 'deepseek'] as const
 export type DarkThemeMode = (typeof DARK_THEME_MODES)[number]
 
 /**

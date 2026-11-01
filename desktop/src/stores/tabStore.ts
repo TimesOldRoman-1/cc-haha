@@ -15,6 +15,7 @@ const MAX_CLOSED_SESSION_TABS = 10
 // list for the life of the page. Delete flows close the tab after deleting.
 const deletedSessionIds = new Set<string>()
 
+export const HOME_TAB_ID = '__home__'
 export const SETTINGS_TAB_ID = '__settings__'
 export const SCHEDULED_TAB_ID = '__scheduled__'
 export const CONNECTORS_TAB_ID = '__connectors__'
@@ -25,7 +26,7 @@ export const SUBAGENT_TAB_PREFIX = '__subagent__'
 export const TEAM_TAB_PREFIX = '__team__'
 export const TEAM_MEMBER_TAB_PREFIX = 'team-member:'
 
-export type TabType = 'session' | 'settings' | 'scheduled' | 'connectors' | 'market' | 'terminal' | 'workbench' | 'subagent' | 'team' | 'team-member'
+export type TabType = 'session' | 'home' | 'settings' | 'scheduled' | 'connectors' | 'market' | 'terminal' | 'workbench' | 'subagent' | 'team' | 'team-member'
 type PersistentSpecialTabType = 'settings' | 'scheduled' | 'connectors' | 'market'
 
 // Retired tab shapes that older builds persisted. `persistenceMigrations`

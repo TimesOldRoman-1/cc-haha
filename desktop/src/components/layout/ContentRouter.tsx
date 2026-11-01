@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { useUIStore } from '@/stores/uiStore'
 import { useTabStore } from '../../stores/tabStore'
 import { EmptySession } from '../../pages/EmptySession'
+import { WorkbenchHome } from '../../pages/WorkbenchHome'
 import { ActiveSession } from '../../pages/ActiveSession'
 import { ScheduledTasks } from '../../pages/ScheduledTasks'
 import { ExtensionMarket } from '@/pages/ExtensionMarket'
@@ -65,6 +66,8 @@ export function ContentRouter({ homePage }: ContentRouterProps = {}) {
   let page: ReactNode = null
   if (!activeTabId || !activeTabType) {
     page = draft ? null : homePage ?? <EmptySession />
+  } else if (activeTabType === 'home') {
+    page = <WorkbenchHome />
   } else if (activeTabType === 'settings') {
     page = <Settings />
   } else if (activeTabType === 'scheduled') {

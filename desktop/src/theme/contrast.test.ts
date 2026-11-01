@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
 import css from './globals.css?raw'
+import { DARK_THEME_MODES } from '../types/settings'
+
+const INK_SHARED = DARK_THEME_MODES.map((theme) => `[data-theme="${theme}"]`).join(',\n')
 
 /**
  * Contrast guard for the status palette.
@@ -30,8 +33,9 @@ const THEME_BLOCKS = {
   paper: ['[data-theme="paper"]', ':root', '@theme'],
   'warm-classic': ['[data-theme="warm-classic"]', ':root', '@theme'],
   celadon: ['[data-theme="celadon"]', ':root', '@theme'],
-  dark: ['[data-theme="dark"]', '[data-theme="dark"],\n[data-theme="ink-blue"]', ':root', '@theme'],
-  'ink-blue': ['[data-theme="ink-blue"]', '[data-theme="dark"],\n[data-theme="ink-blue"]', ':root', '@theme'],
+  dark: ['[data-theme="dark"]', INK_SHARED, ':root', '@theme'],
+  'ink-blue': ['[data-theme="ink-blue"]', INK_SHARED, ':root', '@theme'],
+  deepseek: ['[data-theme="deepseek"]', INK_SHARED, ':root', '@theme'],
 } as const
 
 /**
