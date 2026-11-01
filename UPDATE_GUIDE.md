@@ -4,17 +4,23 @@
 
 ## 一、日常更新（一条命令）
 
+**先关掉正在运行的个人版**，然后：
+
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\update-personal.ps1 -Build
 ```
 
-它做三件事：
+它做四件事：
 
-1. `git fetch upstream --tags` 拉上游新提交
-2. `git rebase upstream/main` 把你的两个提交重放到最新代码上
-3. 如果加了 `-Build`，重新打包出 `desktop\build-artifacts\electron\win-unpacked\`
+1. 检查 `build-artifacts\personal-next` 没有被运行中的实例占用（被占用会直接提示并退出）
+2. `git fetch upstream --tags` 拉上游新提交
+3. `git rebase upstream/main` 把你的提交重放到最新代码上
+4. 如果加了 `-Build`，清理旧输出并重新打包到  
+   `desktop\build-artifacts\personal-next\win-unpacked\`
 
-没冲突就直接结束；有冲突会停下来，列出冲突文件。
+没冲突就直接结束；有冲突会停下来，列出冲突文件。打包阶段即使 `electron-builder` 在签名缓存处报错（本机符号链接权限），只要 exe 已经生成，脚本仍视为成功。
+
+> 为什么必须输出到 `personal-next`：这个目录和你当前运行的 exe 是同一个，替换前必须先关应用；脚本会替你把这一关检查掉。官方安装目录 `C:\Claude Code Haha` 永远不碰。
 
 ## 二、有冲突怎么办
 

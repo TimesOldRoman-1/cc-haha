@@ -46,9 +46,19 @@
 | 项目名显示成 `c--Users-...` | `projectPath` 是编码 key，显示改用 `workDir/projectRoot` |
 | 测试实例抢不到单实例锁 | 启动时加 `CC_HAHA_ELECTRON_DISABLE_SINGLE_INSTANCE_LOCK=1` + 独立 `--user-data-dir` |
 | Playwright 静态加载 chunk 报 ERR_CONNECTION_REFUSED | 测试服务器改 `ThreadingHTTPServer` 并加大 backlog |
+| 官方版启动会把主题改回默认 | 两版共用 `%APPDATA%\claude-code-desktop` → localStorage 共享；个人版改用 `claude-code-desktop-personal` |
+| 打包时目录被运行中的实例占用 | 输出到独立目录 `build-artifacts/personal-next`；更新脚本先检查占用 |
+| 误杀用户正在用的个人版 | `Stop-Process` 不能按项目目录通配；只用记录过的 PID，或先确认 `StartTime`/窗口 |
+
+## 当前使用与更新
+
+- 正在使用的包：`desktop\build-artifacts\personal-next\win-unpacked\Claude Code HaHa.exe`
+- 上游更新：先关个人版，再跑 `update-personal.ps1 -Build`
+- 冲突处理：`UPDATE_GUIDE.md`
+- 数据隔离：个人版 `claude-code-desktop-personal`；官方版 `claude-code-desktop`；会话数据共用 `~/.claude`
 
 ## 自评
 
-- 好：改动全部源码级、可阅读、可 rebase；主题与工作台都经过真实窗口验收；密钥/本机配置未进仓库
+- 好：改动全部源码级、可阅读、可 rebase；主题与工作台都经过真实窗口验收；密钥/本机配置未进仓库；更新流程已脚本化
 - 不好：项目目录还是临时名 `_cchaha_src_probe`；NSIS 安装包受限于本机符号链接权限；工作台目前只读展示，没有加拖拽排序等交互
-- 下次改进：目录规范化；若长期使用，把 `publish` 配置和构建脚本固化成一条命令
+- 下次改进：目录规范化；把更新脚本做成双击即可运行的 `.cmd` 包装

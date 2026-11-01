@@ -27,10 +27,22 @@ cd ../adapters && bun install
 # 前端 + Electron 主进程
 cd desktop && bun run build && bun run build:electron
 
-# 出免安装目录（推荐：不需要管理员权限）
-bun run electron:package:dir
-# 产物：desktop/build-artifacts/electron/win-unpacked/
+# 出免安装目录到个人版专用目录（不碰官方安装）
+bunx electron-builder --dir --publish never --config.directories.output=build-artifacts/personal-next
+# 产物：desktop/build-artifacts/personal-next/win-unpacked/
 ```
+
+> 日常更新直接跑 `update-personal.ps1 -Build`，它会检查占用并输出到 `personal-next`。
+
+## 数据目录隔离（解决官方版覆盖主题）
+
+两版共用 `package.json` 的 `name`（`claude-code-desktop`），Electron 默认会给同一个 userData，localStorage 里的 `cc-haha-theme` 因此共享；官方版不认识 `deepseek`，启动时会重写它。个人版现在在 `electron/main.ts` 顶层：
+
+```ts
+app.setPath('userData', path.join(app.getPath('appData'), 'claude-code-desktop-personal'))
+```
+
+`~/.claude` 会话数据仍然共享。代价：个人版首次启动要重选一次主题；H5 token/窗口位置也是独立的。
 
 完整 NSIS 安装包需要 Windows **开发者模式**或管理员权限（electron-builder 解压 winCodeSign 时要建符号链接）；当前机器未开启，`electron:package` 会在签名工具解压阶段退出，但 `win-unpacked/` 已经生成且可用。
 
@@ -52,21 +64,24 @@ python _verify_workbench.py    # 用独立 profile + 关单实例锁，CDP 截�
 
 ## ★ 更新跟进（上游发新版后）
 
-```bash
-git fetch upstream --tags
-git rebase upstream/main      # 冲突通常只在 globals.css / 主题列表 / 新页面
-cd desktop && bun run electron:package:dir
+先关掉个人版，然后一条命令：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\update-personal.ps1 -Build
 ```
 
-前提是先配好远端：
+脚本会检查 `personal-next` 是否被占用、fetch + rebase、重新打包到 `build-artifacts/personal-next/`。冲突处理清单见 `UPDATE_GUIDE.md`。
+
+远端已配好：
 
 ```bash
-git remote add upstream https://github.com/NanmiCoder/cc-haha.git
-# origin = 你自己的 fork
+git remote -v
+# origin   = https://github.com/TimesOldRoman-1/cc-haha.git
+# upstream = https://github.com/NanmiCoder/cc-haha.git
 ```
 
 ## ★ 已知问题 / 待办
 
-- **自动更新**：`desktop/package.json` 的 `build.publish` 指向官方仓库。自建包若点「检查更新」并安装，会把个人分支覆盖回官方版。正式分发前应改成自己的 fork 或删掉 `app-update.yml`。
-- `electron:package`（NSIS）在本机因符号链接权限失败，`electron:package:dir` 可用。
+- **自动更新**：`build.publish` 已指向自己的 fork（`TimesOldRoman-1/cc-haha`）；`--dir` 包不生成 `app-update.yml`，实际不会自动更新。只有将来出 NSIS 安装包时才需要再确认。
+- `electron:package`（NSIS）在本机因符号链接权限失败；用 `electron:package:dir` / `update-personal.ps1 -Build` 的免安装目录。
 - Windows clone 会把 `globals.css` 转成 CRLF，导致 `contrast.test.ts` 误报；已将该文件转回 LF，后续编辑注意别引入 CRLF。
