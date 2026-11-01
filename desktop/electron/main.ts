@@ -114,6 +114,14 @@ import {
   MIN_WINDOW_WIDTH,
 } from './services/windows'
 
+// Personal fork: the stock build and this build share package.json's `name`
+// (`claude-code-desktop`), so Electron hands both the same userData directory —
+// and with it the same localStorage, where `cc-haha-theme` lives. The stock
+// build does not know the `deepseek` palette and rewrites that key on boot,
+// silently dropping the theme. Give this build its own Chromium profile; the
+// session/config data under ~/.claude stays shared.
+app.setPath('userData', path.join(app.getPath('appData'), 'claude-code-desktop-personal'))
+
 let mainWindow: BrowserWindow | null = null
 let serverRuntime: ElectronServerRuntime | null = null
 let dataMigration: DataMigration | null = null
