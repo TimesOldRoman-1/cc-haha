@@ -1629,6 +1629,40 @@ describe('ConversationService', () => {
     expect(args).toContain('--replay-user-messages')
   })
 
+  test('buildSessionCliArgs injects the compact GenUI system prompt for main sessions', () => {
+    const service = new ConversationService() as any
+    const args = service.buildSessionCliArgs(
+      '123e4567-e89b-12d3-a456-426614174000',
+      'ws://127.0.0.1:3456/sdk/test-session?token=test-token',
+      false,
+      { permissionMode: 'bypassPermissions' },
+    ) as string[]
+
+    const index = args.indexOf('--append-system-prompt')
+    expect(index).toBeGreaterThanOrEqual(0)
+    expect(args[index + 1]).toContain('[GenUI / dsh-ui]')
+  })
+
+  test('buildSessionCliArgs leaves team worker subagents without the GenUI prompt', () => {
+    const service = new ConversationService() as any
+    const args = service.buildSessionCliArgs(
+      '123e4567-e89b-12d3-a456-426614174000-child',
+      'ws://127.0.0.1:3456/sdk/test-child?token=test-token',
+      false,
+      {
+        teamWorker: {
+          name: 'worker',
+          teamName: 'team',
+          memberId: 'member',
+          parentSessionId: '123e4567-e89b-12d3-a456-426614174000',
+          systemPrompt: 'worker prompt',
+        },
+      } as any,
+    ) as string[]
+
+    expect(args.join('\0')).not.toContain('[GenUI / dsh-ui]')
+  })
+
   test('buildChildEnv asks desktop SDK sessions to wait briefly for MCP tools', async () => {
     const service = new ConversationService() as any
     const env = (await service.buildChildEnv(
