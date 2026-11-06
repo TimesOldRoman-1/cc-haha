@@ -14,7 +14,15 @@
 2. **新增「工作台」首页**（侧边栏第一项）
    - 问候 + 快捷操作（新任务/定时/技能市场/设置）+ 最近会话 + 项目列表 + 统计（会话/项目/定时任务/消息）
    - 改动位置：`stores/tabStore.ts`（`home` tab 类型）、`components/layout/ContentRouter.tsx`、`components/layout/Sidebar.tsx`、`pages/WorkbenchHome.tsx`
-3. **Windows 通知身份与官方版分离**（2026-11-06）
+3. **GenUI：把 `dsh-ui` 围栏渲染成交互组件**（2026-11-06）
+   - 依赖 `@changfenhuang/dsh-genui@0.15.0`（MIT），复用其 host-agnostic `./embed` 渲染器；CC-Haha 只补 JSON 解析、DSH 主题 token 桥接、引擎资产与 action 回传。
+   - `MarkdownRenderer` 遇到 ` ```dsh-ui ` 围栏 → `components/genui/GenuiRenderer`；流式中途或 JSON 不合法时回退原代码块。
+   - 组件 action（按钮/表单提交）通过 `useChatStore.sendMessage` 以 `[genui-action] ...` 消息回传给当前会话；模型侧靠 `~/.claude/skills/genui/SKILL.md` 学会围栏语法。
+   - mermaid / echarts / three / maplibre / icons 引擎由 `scripts/copy-genui-assets.ts` 从 node_modules 复制到 `public/genui-assets`，随构建进入 asar。
+   - `@deepseek-ai/dsh-client-ui-primitives` 用 `components/genui/dshPrimitivesShim.tsx` 替代（Vite / Vitest alias + tsconfig paths）。
+   - 视觉验证：`genui-preview.html` + `scripts/genui-preview-main.cjs` 在 file:// 下跑通浅色/深潮两套主题、Mermaid、ECharts、KaTeX 与按钮 action。
+
+4. **Windows 通知身份与官方版分离**（2026-11-06）
    - 上游的 `WINDOWS_APP_USER_MODEL_ID` 与官方安装包共用 `com.claude-code-haha.desktop`。Windows 用开始菜单里该 AUMID 的快捷方式解析 toast 激活，而官方安装的 `Claude Code Haha.lnk` 指向官方 exe；点个人版发出的通知会启动官方版。
    - 个人版改为 `com.claude-code-haha.desktop.personal`（`electron/services/appIdentity.ts`；未改 `build.appId`，避免影响 macOS/computer-use 标识）。
    - Electron 在首次发通知时会自己创建/改写开始菜单的 `Electron.lnk`（名字来自 exe 的 ProductName 版本资源）并注册 `Electron Notification Activator` CLSID；官方 `Claude Code Haha.lnk` 保持不变。两者 AUMID 不再重叠，通知只会回到各自版本。

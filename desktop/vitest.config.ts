@@ -4,9 +4,11 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
+  esbuild: { jsx: 'automatic' },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
+      '@deepseek-ai/dsh-client-ui-primitives': path.resolve(__dirname, 'src/components/genui/dshPrimitivesShim.tsx'),
     },
   },
   test: {

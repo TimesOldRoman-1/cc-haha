@@ -24,6 +24,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
+      // dsh-genui's embed renderer imports four DSH UI primitives. Alias the
+      // whole package path to CC-Haha's local shim instead of pulling a DSH
+      // runtime into the app.
+      '@deepseek-ai/dsh-client-ui-primitives': path.resolve(__dirname, 'src/components/genui/dshPrimitivesShim.tsx'),
     },
   },
   // Vite options tailored for Tauri development

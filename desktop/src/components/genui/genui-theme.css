@@ -1,0 +1,44 @@
+/*
+ * Bridge dsh-genui's DSH theme tokens onto CC-Haha's --cc-* palette.
+ * GenUI ships its own CSS modules but every colour is var(--dsw-alias-*),
+ * so a single scoped mapping keeps light/dark themes coherent without
+ * touching the upstream renderer.
+ */
+.genui-host {
+  --dsw-alias-bg-base: var(--cc-bg);
+  --dsw-alias-bg-layer-1: var(--cc-s1);
+  --dsw-alias-bg-layer-2: var(--cc-s2);
+  --dsw-alias-bg-layer-3: var(--cc-s0);
+
+  --dsw-alias-border-l1: var(--cc-bd);
+  --dsw-alias-border-l2: var(--cc-bd2);
+
+  --dsw-alias-fill-hover: var(--cc-s1);
+
+  --dsw-alias-label-primary: var(--cc-t1);
+  --dsw-alias-label-secondary: var(--cc-t2);
+  --dsw-alias-label-tertiary: var(--cc-t3);
+  --dsw-alias-label-caption: var(--cc-t3);
+
+  --dsw-alias-markdown-code-block: var(--cc-code);
+  --dsw-alias-markdown-hr: var(--cc-bd);
+
+  --dsw-alias-state-business-primary: var(--cc-ac);
+  --dsw-alias-state-business-tertiary: var(--cc-ac-soft);
+
+  --dsw-alias-state-error-primary: var(--cc-er);
+  --dsw-alias-state-error-secondary: var(--cc-er-ink);
+  --dsw-alias-state-success-primary: var(--cc-ok);
+  --dsw-alias-state-success-secondary: var(--cc-ok-ink);
+  --dsw-alias-state-success-tertiary: var(--cc-ok-soft);
+
+  --dsw-alias-state-warn-primary: var(--cc-wn);
+  --dsw-alias-state-warn-secondary: var(--cc-wn-ink);
+  --dsw-alias-state-warn-tertiary: var(--cc-wn-soft);
+  --dsw-alias-state-warn-label: var(--cc-wn-ink);
+
+  --ds-font-family-code: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --dsh-content-font-size: 14px;
+
+  color: var(--cc-t1);
+}

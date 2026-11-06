@@ -25,6 +25,7 @@ import { classifyPreviewLink, type PreviewLinkTarget } from '@/lib/previewLinkRo
 import { isSafeMarkdownImageSource, normalizeMarkdownImageDestination } from '@/lib/markdownImages'
 import { CodeViewer } from '../chat/CodeViewer'
 import { MermaidRenderer } from '../chat/MermaidRenderer'
+import { GenuiRenderer, genuiStateKey, type GenuiActionHandler } from '@/components/genui/GenuiRenderer'
 import { copyTextToClipboard } from '@/lib/clipboard'
 import { MarkdownHtml, originalMarkdownImageSource } from '@/components/markdown/MarkdownHtml'
 import { t } from '../../i18n'
@@ -58,6 +59,10 @@ type Props = {
    * Markdown are taken at their word. Without a verifier every guess links.
    */
   fileLinkVerifier?: FileLinkVerifier
+  /** Namespace (usually the session id) for durable GenUI interaction state. */
+  genuiStateNamespace?: string
+  /** Relay a dsh-ui component action back to the conversation. Absent = display-only. */
+  onGenuiAction?: GenuiActionHandler
 }
 
 export type MarkdownImageClick = {
@@ -82,6 +87,7 @@ type CodePart = { type: 'code'; block: CodeBlock }
 type MarkdownPart = HtmlPart | CodePart
 
 const MERMAID_LANGUAGE = 'mermaid'
+const DSH_UI_LANGUAGE = 'dsh-ui'
 const PLAINTEXT_LANGUAGES = new Set(['', 'text', 'plaintext', 'plain'])
 const MERMAID_DIAGRAM_START = /^(graph|flowchart|sequenceDiagram|classDiagram|stateDiagram(?:-v2)?|erDiagram|journey|gantt|pie|gitGraph|mindmap|timeline|requirementDiagram|quadrantChart|xychart-beta|sankey-beta|block-beta|packet-beta|architecture|kanban)\b/i
 const CODE_FENCE_START = /^ {0,3}(`{3,}|~{3,})/
@@ -676,7 +682,7 @@ function reportImageClick(
   })
 }
 
-export const MarkdownRenderer = memo(function MarkdownRenderer({ content, variant = 'default', className, cache = true, streaming = false, onLinkClick, resolveImageSrc, onImageClick, fileLinkVerifier }: Props) {
+export const MarkdownRenderer = memo(function MarkdownRenderer({ content, variant = 'default', className, cache = true, streaming = false, onLinkClick, resolveImageSrc, onImageClick, fileLinkVerifier, genuiStateNamespace, onGenuiAction }: Props) {
   const { html, codeBlocks, mathBlocks } = useMemo(
     () => cache ? getCachedMarkdownParse(content, streaming) : parseMarkdown(content),
     [cache, content, streaming],
@@ -793,6 +799,14 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content, varian
       {visibleParts.map((part, i) =>
         part.type === 'html' ? (
           <MarkdownHtml key={i} html={part.content} />
+        ) : part.block.language === DSH_UI_LANGUAGE ? (
+          <GenuiRenderer
+            key={part.block.id}
+            code={part.block.code}
+            streaming={streaming}
+            stateKey={genuiStateKey(genuiStateNamespace ?? 'markdown', part.block.code)}
+            onAction={onGenuiAction}
+          />
         ) : shouldRenderAsMermaid(part.block) ? (
           streaming ? (
             <MermaidStreamingPlaceholder key={part.block.id} />

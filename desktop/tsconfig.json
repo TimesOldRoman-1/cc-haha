@@ -19,7 +19,8 @@
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@deepseek-ai/dsh-client-ui-primitives": ["src/components/genui/dshPrimitivesShim"]
     }
   },
   "include": ["src"]

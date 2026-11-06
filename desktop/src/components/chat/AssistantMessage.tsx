@@ -21,6 +21,7 @@ import type { MarkdownImageClick } from '../markdown/MarkdownRenderer'
 import { getServerBaseUrl } from '../../lib/desktopRuntime'
 import { isManagedGeneratedImagePath } from '../../lib/attachmentImages'
 import { useWorkspaceContentStore } from '../../stores/workspaceContentStore'
+import { useChatStore } from '../../stores/chatStore'
 import { useTranslation, type TranslationKey } from '../../i18n'
 import { useDiskConfirmedTargets } from '../../hooks/useDiskConfirmedTargets'
 import { useTurnWrittenTargets } from '../../hooks/useTurnWrittenTargets'
@@ -60,6 +61,18 @@ export const AssistantMessage = memo(function AssistantMessage({
 }: Props) {
   const t = useTranslation()
   const workDir = useWorkspaceContentStore((s) => (sessionId ? s.statusBySession[sessionId]?.workDir : undefined))
+
+  const handleGenuiAction = useCallback(
+    (action: string, payload: Record<string, unknown>) => {
+      if (!sessionId || isStreaming) return
+      const payloadText = Object.keys(payload).length > 0 ? ` 组件数据: ${JSON.stringify(payload)}` : ''
+      useChatStore.getState().sendMessage(
+        sessionId,
+        `[genui-action] ${action}。用户刚刚在界面中触发了动作 "${action}"，请根据组件数据执行相应操作，并用 dsh-ui 输出更新后的界面。${payloadText}`,
+      )
+    },
+    [isStreaming, sessionId],
+  )
 
   const [openWith, setOpenWith] = useState<{ items: OpenWithItem[]; anchor: DOMRect } | null>(null)
   const [viewer, setViewer] = useState<{ images: Array<{ src: string; name: string; path?: string }>; index: number } | null>(null)
@@ -213,6 +226,8 @@ export const AssistantMessage = memo(function AssistantMessage({
             resolveImageSrc={resolveAssistantImageSrc}
             onImageClick={resolveAssistantImageSrc ? handleImageClick : undefined}
             fileLinkVerifier={fileLinkVerifier}
+            genuiStateNamespace={sessionId}
+            onGenuiAction={sessionId ? handleGenuiAction : undefined}
           />
           {!isStreaming && (
             <InlineImageGallery

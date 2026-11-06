@@ -69,6 +69,12 @@ git status
 | `desktop/src/components/layout/Sidebar.tsx` | 工作台入口 | 与上游改动合并 |
 | `desktop/electron/services/appIdentity.ts` | Windows AUMID 改为 `com.claude-code-haha.desktop.personal` | 保留个人 AUMID；详见下文「八」 |
 | `desktop/electron/services/appIdentity.test.ts` | 断言 AUMID = `${build.appId}.personal` | 保留个人断言 |
+| `desktop/package.json` | `@changfenhuang/dsh-genui` 依赖 + `prepare:genui-assets` | 保留依赖与脚本；详见下文「九」 |
+| `desktop/vite.config.ts` / `vitest.config.ts` | `@deepseek-ai/dsh-client-ui-primitives` alias | 保留 alias |
+| `desktop/tsconfig.json` | 同上 paths 映射 | 保留 paths |
+| `desktop/src/components/markdown/MarkdownRenderer.tsx` | `dsh-ui` 围栏分支 | 保留 `DSH_UI_LANGUAGE` 分支（在 mermaid 分支前） |
+| `desktop/src/components/chat/AssistantMessage.tsx` | GenUI action 回传 | 保留 `handleGenuiAction` 与两个 props |
+| `desktop/src/components/genui/**` | 渲染器 / 主题桥 / shim / 测试 | 新文件，一般无冲突 |
 
 **如果上游给 `--cc-*` 加了新变量**：要在 deepseek 块里补上，否则新组件在你的主题下会拿到未定义值。补完跑测试，`contrast.test.ts` 会告诉你哪个颜色不达标。
 
@@ -172,3 +178,44 @@ Get-ChildItem "$env:APPDATA\Microsoft\Windows\Start Menu\Programs" -Filter *.lnk
 预期：`Claude Code Haha.lnk -> com.claude-code-haha.desktop`，`Electron.lnk -> com.claude-code-haha.desktop.personal`。
 
 **注意**：旧版个人包（共用官方 AUMID）如果还在磁盘上，运行它会把 `Electron.lnk` 改回旧 AUMID，通知又会跑到官方版。切到新版后不要再启动旧包；留作回退时先确认。
+
+## 九、GenUI 增强（`dsh-ui` 围栏，2026-11-06）
+
+个人版复用 `@changfenhuang/dsh-genui` 的 host-agnostic 渲染器，把回答里的 ` ```dsh-ui ` 围栏渲染成原生交互组件（指标卡、表格、Mermaid、ECharts、表单、测验等）。
+
+rebase/更新后要保留：
+
+- `desktop/package.json` 的 `@changfenhuang/dsh-genui` 依赖与 `prepare:genui-assets`
+- `desktop/src/components/genui/`（渲染器、主题桥、primitive shim、测试）
+- `MarkdownRenderer.tsx` 的 `dsh-ui` 分支与两个 props（`genuiStateNamespace` / `onGenuiAction`）
+- `AssistantMessage.tsx` 的 action 回传
+- Vite / Vitest alias 与 tsconfig paths 的 `@deepseek-ai/dsh-client-ui-primitives`
+
+构建：
+
+```bash
+cd desktop
+bun install                    # 首次/依赖变更后
+bun run build                  # 会自动复制引擎资产到 public/genui-assets
+bun run build:electron
+bunx electron-builder --dir --publish never --config.directories.output=build-artifacts/personal-genui
+```
+
+模型侧技能（rebase 不影响，换机/重装要重做）：
+
+```powershell
+# 从 npm 包装好的 SKILL.md 安装到 Claude Code 技能目录
+Copy-Item "desktop/node_modules/@changfenhuang/dsh-genui/SKILL.md" "$env:USERPROFILE\.claude\skills\genui\SKILL.md" -Force
+```
+
+验证：
+
+```bash
+cd desktop
+bun run test -- --run src/components/genui/GenuiRenderer.test.tsx src/components/markdown/MarkdownRenderer.test.tsx electron/services/appIdentity.test.ts
+# 77 passed（含 dsh-ui fence → GenUI block、action 回传的组件测试）
+```
+
+视觉/打包环境验证：`genui-preview.html` + `scripts/genui-preview-main.cjs`（Electron file://，含 CSP），或在真实应用里让模型输出一个 ` ```dsh-ui ` 围栏。
+
+**已知限制**：当前只在 JSON 完整后挂载 UI（流式中途仍显示代码块）；dsh-genui 官方的逐节点流式渲染没有接。需要时再引入其 partial parser。
