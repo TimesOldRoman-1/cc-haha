@@ -82,7 +82,7 @@ ASCII junction：
 - [x] 清理旧构建（`electron`/`personal-aumid`/`personal-genui`，约 2.4 GB）。
 - [x] 目录改名（2026-11-06 20:18）：`_cchaha_src_probe` → `CC-Haha_Personal`；junction、文档、memory、权限规则路径已自动更新。
 - [x] 桌面脚本已归档到 `小试验/CC-Haha_GenUI增强/01_中间文件与脚本/`，桌面不再放脚本。
-- [x] 迁移脚本产生的路径改动已本地提交 `67fbad89`；推送待 GitHub 代理恢复（`502`）。
+- [x] 迁移脚本产生的路径改动已提交 `67fbad89`，默认优先 UI 提示已提交 `7c2bdb86`；两个 commit 已推送到自己的 fork（`origin/personal` + `personal-v0.7.7`，未动 upstream）。
 - [ ] 重启切换到 `personal-ui-default`（默认优先 UI）；桌面原 GenUI+Inject 快捷方式已指向新 junction。
 
 ## 自评
