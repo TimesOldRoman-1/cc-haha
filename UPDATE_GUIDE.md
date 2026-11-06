@@ -251,10 +251,11 @@ Copy-Item "desktop/node_modules/@changfenhuang/dsh-genui/SKILL.md" "$env:USERPRO
 
 宿主注入（2026-11-06 追加）：
 
-- `src/server/services/genuiSystemPrompt.ts` 导出 `GENUI_SYSTEM_PROMPT`：**1,087 字符 / 1,703 字节 / 250 汉字 ≈ 400–600 tokens**，只含围栏语法、常用 type 与行为规则；完整字段仍指向 `genui` skill（约 54 KB ≈ 12k–13k tokens，按需加载）。
+- `src/server/services/genuiSystemPrompt.ts` 导出 `GENUI_SYSTEM_PROMPT`：**1,070 字符 / 1,692 字节 / 251 汉字 ≈ 400–600 tokens**，只含围栏语法、常用 type 与行为规则；完整字段仍指向 `genui` skill（约 54 KB ≈ 12k–13k tokens，按需加载）。
+- **2026-11-06 20:28 改为默认优先 UI**：除非回答只有一句话、寒暄，或用户明确要求纯文字，否则优先用 `dsh-ui`；多条目/对比/指标/步骤/表格/清单/结论汇总都必须用 UI，不再要求「≥3 条 / ≥2 组」才触发。
 - `conversationService.ts` 的 `buildSessionCliArgs` 对主会话追加 `--append-system-prompt <GENUI + side boundary>`；**团队 worker / subagent 不注入**（它们的正文不渲染成聊天 UI）。
 - 该提示进入 system prompt，不是每轮一条用户消息；命中 prompt cache 后每轮边际成本只有缓存读取。
-- 验证：`bun test -t "GenUI" src/server/__tests__/conversation-service.test.ts` → 2 passed；重编 sidecar 后体积比旧包大 5,632 字节（新增提示）。
+- 验证：`bun test -t "GenUI" src/server/__tests__/conversation-service.test.ts` → 2 passed。
 - 改了 server 代码必须重跑 `bun run build:sidecars`，再打包；`desktop/dist` 无需重建（前端未变）。
 
 验证：
@@ -275,12 +276,13 @@ bun run test -- --run src/components/genui/GenuiRenderer.test.tsx src/components
 
 | 目录 | 内容 | 状态 |
 |---|---|---|
-| `personal-genui-inject` | GenUI 渲染 + 宿主注入 | **当前运行**（Agent 跑在里面） |
+| `personal-genui-inject` | GenUI 渲染 + 宿主注入（条件式 UI） | **当前运行**（本次重启前） |
+| `personal-ui-default` | GenUI + 宿主注入（**默认优先 UI**） | 已打包，待重启切换 |
 | `personal-next` | 更新脚本默认暂存输出 / 回退 | 下次更新重建 |
 | `genui-preview` | file:// GenUI 预览 | 测试用，23 MB |
 
 旧 `electron` / `personal-aumid` / `personal-genui` 已删除（约 2.4 GB）。
-ASCII junction：`cc-haha-personal-genui-inject`（当前）、`cc-haha-personal`（→ `personal-next`）。
+ASCII junction：`cc-haha-personal-ui`（→ `personal-ui-default`，桌面 GenUI+Inject 快捷方式已指向它）、`cc-haha-personal-genui-inject`（当前运行）、`cc-haha-personal`（→ `personal-next`）。
 
 ### 已完成的切换与清理
 
@@ -288,6 +290,7 @@ ASCII junction：`cc-haha-personal-genui-inject`（当前）、`cc-haha-personal
 2. 全局 `~/.claude/CLAUDE.md` 的临时 GenUI 规则已删除。
 3. 宿主注入 + 校验/更新管线已提交并推送（`b8672d7f`）。
 4. 旧构建已删除，磁盘释放约 2.4 GB。
+5. 2026-11-06 20:28：默认优先 UI 的新包 `personal-ui-default` 已打包；关闭当前个人版后双击原快捷方式即可切换。
 
 ### 目录迁移（2026-11-06 20:18 完成）
 

@@ -34,7 +34,8 @@
 
 | 目录 | 用途 | 状态 |
 |---|---|---|
-| `desktop\build-artifacts\personal-genui-inject` | 当前运行的 GenUI + 宿主注入版（v0.7.7） | 运行中 |
+| `desktop\build-artifacts\personal-genui-inject` | 当前运行的 GenUI + 宿主注入版（条件式 UI） | 运行中（本次重启前） |
+| `desktop\build-artifacts\personal-ui-default` | 默认优先 UI 的新版 | 已打包，待重启切换 |
 | `desktop\build-artifacts\personal-next` | 更新脚本的默认暂存输出 / 回退版 | 每次 `-Build` 重建 |
 | `desktop\build-artifacts\genui-preview` | GenUI file:// 预览验证 | 测试用，23 MB |
 
@@ -42,6 +43,7 @@
 
 ASCII junction：
 
+- `C:\Users\26056\cc-haha-personal-ui` → `personal-ui-default`（桌面 GenUI+Inject 快捷方式已指向它）
 - `C:\Users\26056\cc-haha-personal-genui-inject` → 当前运行版
 - `C:\Users\26056\cc-haha-personal` → `personal-next`（更新脚本的切换入口）
 
@@ -80,7 +82,8 @@ ASCII junction：
 - [x] 清理旧构建（`electron`/`personal-aumid`/`personal-genui`，约 2.4 GB）。
 - [x] 目录改名（2026-11-06 20:18）：`_cchaha_src_probe` → `CC-Haha_Personal`；junction、文档、memory、权限规则路径已自动更新。
 - [x] 桌面脚本已归档到 `小试验/CC-Haha_GenUI增强/01_中间文件与脚本/`，桌面不再放脚本。
-- [ ] 把迁移脚本产生的路径改动提交并推送（`git status` 里的 `SUMMARY.md` / `UPDATE_GUIDE.md`）。
+- [x] 迁移脚本产生的路径改动已本地提交 `67fbad89`；推送待 GitHub 代理恢复（`502`）。
+- [ ] 重启切换到 `personal-ui-default`（默认优先 UI）；桌面原 GenUI+Inject 快捷方式已指向新 junction。
 
 ## 自评
 

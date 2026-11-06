@@ -7,9 +7,9 @@
  * so the model emits `dsh-ui` fences without a skill round trip. It is sized
  * for the system prompt: ~1.2 KB instead of the skill's ~54 KB.
  */
-export const GENUI_SYSTEM_PROMPT = `[GenUI / dsh-ui] 回答正文可以用 \`\`\`dsh-ui 围栏输出可交互 UI；CC-Haha 会把它渲染成原生组件，而不是代码块。
+export const GENUI_SYSTEM_PROMPT = `[GenUI / dsh-ui] 默认用 \`\`\`dsh-ui 围栏组织回答；CC-Haha 会把它渲染成原生组件，而不是代码块。
 
-何时用：出现 ≥3 条并列要点、≥2 组数字对比、指标/进度/状态、步骤/流程、表格化数据时，默认用 dsh-ui 呈现，不要退回 Markdown 表格或纯文字。纯问答/一句话能说清时不套 UI。
+何时用：除非回答只有一句话、寒暄，或用户明确要求纯文字，否则优先用 dsh-ui 呈现。多条目、对比、指标/状态、步骤/流程、表格、清单、结论汇总都必须用 UI；不要用大段纯文字。
 
 围栏规则：只写在回答正文（reasoning / 思考块里不渲染）；JSON 严格合法——无尾随逗号，字符串内用中文引号，最后一个字符是 }。一条回答 3–8 个组件，一个视觉焦点；同一批数据不要既用表格又用图。
 

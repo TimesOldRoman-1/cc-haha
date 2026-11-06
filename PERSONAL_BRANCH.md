@@ -29,7 +29,8 @@
    - Electron 在首次发通知时会自己创建/改写开始菜单的 `Electron.lnk`（名字来自 exe 的 ProductName 版本资源）并注册 `Electron Notification Activator` CLSID；官方 `Claude Code Haha.lnk` 保持不变。两者 AUMID 不再重叠，通知只会回到各自版本。
 
 5. **GenUI 宿主强制注入**（2026-11-06）
-   - `src/server/services/genuiSystemPrompt.ts` 的紧凑提示（1,087 字符 / 1,703 字节 ≈ 400–600 tokens）由 `conversationService.buildSessionCliArgs` 通过 `--append-system-prompt` 注入主会话；完整字段仍按需加载 `genui` skill（约 12k–13k tokens）。
+   - `src/server/services/genuiSystemPrompt.ts` 的紧凑提示（1,070 字符 / 1,692 字节 ≈ 400–600 tokens）由 `conversationService.buildSessionCliArgs` 通过 `--append-system-prompt` 注入主会话；完整字段仍按需加载 `genui` skill（约 12k–13k tokens）。
+   - **默认优先 UI**：除非回答只有一句话、寒暄或用户明确要纯文字，否则用 `dsh-ui`；多条目/对比/指标/步骤/表格/清单/结论汇总都必须用 UI（2026-11-06 20:28 去掉「≥3 条 / ≥2 组」阈值）。
    - 团队 worker / subagent 不注入（正文不渲染成聊天 UI）；side chat 同时保留 `SIDE_CHAT_BOUNDARY`。
    - 回归：`bun test -t "GenUI" src/server/__tests__/conversation-service.test.ts`（2 passed）。
 
