@@ -34,15 +34,15 @@
 
 | 目录 | 用途 | 状态 |
 |---|---|---|
-| `desktop\build-artifacts\personal-genui` | 当前运行的 GenUI 版（无宿主注入） | 运行中；切换后可退役 |
-| `desktop\build-artifacts\personal-genui-inject` | GenUI + 宿主注入（v0.7.7） | 已打包验证，待用户切换 |
-| `desktop\build-artifacts\personal-next` | 更新脚本的默认暂存输出 | 每次 `-Build` 重建 |
-| `desktop\build-artifacts\personal-aumid`、`electron` | 旧版本 | 仅回退用，可清理 |
+| `desktop\build-artifacts\personal-genui-inject` | 当前运行的 GenUI + 宿主注入版（v0.7.7） | 运行中 |
+| `desktop\build-artifacts\personal-next` | 更新脚本的默认暂存输出 / 回退版 | 每次 `-Build` 重建 |
+| `desktop\build-artifacts\genui-preview` | GenUI file:// 预览验证 | 测试用，23 MB |
+
+旧的 `electron`、`personal-aumid`、`personal-genui` 已删除（约 2.4 GB）。
 
 ASCII junction：
 
-- `C:\Users\26056\cc-haha-personal-genui` → 当前运行版
-- `C:\Users\26056\cc-haha-personal-genui-inject` → 新注入版
+- `C:\Users\26056\cc-haha-personal-genui-inject` → 当前运行版
 - `C:\Users\26056\cc-haha-personal` → `personal-next`（更新脚本的切换入口）
 
 官方安装目录 `C:\Claude Code Haha` 永远不碰。
@@ -74,14 +74,15 @@ ASCII junction：
 
 ## 待办
 
-- [ ] 用户手动切换：退出 `personal-genui` → 启动 `personal-genui-inject` 快捷方式。
-- [ ] 切换后删除全局 `~/.claude/CLAUDE.md` 里临时的 GenUI 规则（否则模型仍会加载完整 skill，抵消注入省下的 token）。
-- [ ] 提交宿主注入 + 本次整理（`git status` 里 5 个修改 + 3 个新文件）。
-- [ ] 推送 `personal` 与版本分支。
-- [ ] 确认新包稳定后清理旧构建（`electron`/`personal-aumid`/`personal-genui`，约 2.4 GB）。
+- [x] 切换新包：已运行 `personal-genui-inject`（宿主注入生效）。
+- [x] 删除全局 `~/.claude/CLAUDE.md` 的临时 GenUI 规则。
+- [x] 提交宿主注入 + 校验/更新管线 + 文档，推送 `personal` / `personal-v0.7.7` 到 `b8672d7f`。
+- [x] 清理旧构建（`electron`/`personal-aumid`/`personal-genui`，约 2.4 GB）。
+- [ ] 目录改名：双击桌面 `完成CC-Haha目录改名.cmd`，按提示关闭个人版；脚本会自动改名、修 junction、更新路径并重启。
+- [ ] 改名完成后确认 `update-personal.ps1` / `verify-personal.ps1` 在新路径下仍可用（脚本用 `$PSScriptRoot`，预期无需改动）。
 
 ## 自评
 
 - 好：6 项功能都有源文件标记和回归测试；更新脚本把「fetch → rebase → 校验 → 构建 → 校验产物」串成一条命令；功能地图让冲突处理有据可查。
-- 不好：工作台还没有渲染级测试；目录仍是临时名 `_cchaha_src_probe`；旧构建占用约 4 GB。
-- 下次：给工作台补一个 store 打桩的渲染测试；切换并验证稳定后统一构建目录命名。
+- 不好：工作台还没有渲染级测试；目录改名需要关闭宿主，只能由迁移脚本在退出后完成。
+- 下次：给工作台补一个 store 打桩的渲染测试；改名后更新 memory 里的绝对路径（迁移脚本已包含这一步）。

@@ -99,7 +99,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\update-personal.ps1 -Build
 
 脚本顺序：检查 `personal-next` 是否被占用 → 清工作树（自动 stash 生成的 `preview-agent.js`）→ fetch + rebase → **跑 `verify-personal.ps1` 校验 6 项功能** → 四处 `bun install` → 重新构建 sidecar / renderer / Electron → 打包到 `build-artifacts/personal-next/` → 再校验产物。
 
-只有目标输出目录被运行中的实例占用时才需要关应用；当前运行的 `personal-genui` 与 `personal-next` 是不同目录，可以并排构建。冲突处理清单见 `UPDATE_GUIDE.md`；切换/清理见 §十。
+只有目标输出目录被运行中的实例占用时才需要关应用；当前运行的 `personal-genui-inject` 与 `personal-next` 是不同目录，可以并排构建。冲突处理清单见 `UPDATE_GUIDE.md`；切换/清理/改名见 §十。
 
 远端已配好：
 

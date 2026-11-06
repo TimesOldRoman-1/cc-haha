@@ -4,7 +4,7 @@
 
 ## 零、快速更新清单（2026-11-06 现状）
 
-> Agent 可能就跑在个人版里。**不要为了构建关应用**；默认暂存输出 `personal-next` 与运行中的 `personal-genui` 是不同目录。只有切换才需要用户手动退出。
+> Agent 可能就跑在个人版里。**不要为了构建关应用**；默认暂存输出 `personal-next` 与运行中的 `personal-genui-inject` 是不同目录。只有切换才需要用户手动退出。
 
 0. 环境：工作树 `C:\Users\26056\Desktop\小试验\_cchaha_src_probe`，分支 `personal`；上游 `NanmiCoder/cc-haha`（`upstream`），origin `TimesOldRoman-1/cc-haha`。
 1. 看上游：`git fetch upstream --tags` → `git log --oneline -5 upstream/main` → `git show upstream/main:desktop/package.json | grep version`。
@@ -275,44 +275,27 @@ bun run test -- --run src/components/genui/GenuiRenderer.test.tsx src/components
 
 | 目录 | 内容 | 状态 |
 |---|---|---|
-| `personal-genui` | GenUI 渲染，旧宿主提示靠全局 CLAUDE.md | 运行中（Agent 跑在里面） |
-| `personal-genui-inject` | GenUI 渲染 + 宿主注入 | 已打包验证，待切换 |
-| `personal-next` | 更新脚本默认暂存输出 | 下次更新重建 |
-| `personal-aumid` / `electron` | 旧版本 | 仅回退 |
+| `personal-genui-inject` | GenUI 渲染 + 宿主注入 | **当前运行**（Agent 跑在里面） |
+| `personal-next` | 更新脚本默认暂存输出 / 回退 | 下次更新重建 |
+| `genui-preview` | file:// GenUI 预览 | 测试用，23 MB |
 
-ASCII junction：`cc-haha-personal-genui` / `cc-haha-personal-genui-inject` / `cc-haha-personal`（→ `personal-next`）。
+旧 `electron` / `personal-aumid` / `personal-genui` 已删除（约 2.4 GB）。
+ASCII junction：`cc-haha-personal-genui-inject`（当前）、`cc-haha-personal`（→ `personal-next`）。
 
-### 切换步骤（必须用户手动）
+### 已完成的切换与清理
 
-1. 退出当前 `personal-genui` 实例（Agent 会话会一起结束）。
-2. 双击桌面 `Claude Code Haha (Personal v0.7.7 GenUI+Inject).lnk`，或运行 `C:\Users\26056\cc-haha-personal-genui-inject\Claude Code Haha.exe`。
-3. 确认新会话不加载 `genui` skill 也能输出 `dsh-ui` 围栏（宿主注入生效）。
-4. 删除全局 `~/.claude/CLAUDE.md` 里「## GenUI 结构化输出」整段（临时兜底，留着会让模型额外加载完整 skill）。
-5. 新包稳定后，把日常快捷方式改指 `personal-next`（或下一次更新脚本的产物）。
+1. 新包 `personal-genui-inject` 已运行，宿主注入生效。
+2. 全局 `~/.claude/CLAUDE.md` 的临时 GenUI 规则已删除。
+3. 宿主注入 + 校验/更新管线已提交并推送（`b8672d7f`）。
+4. 旧构建已删除，磁盘释放约 2.4 GB。
 
-### 可以清理的旧构建（确认后手动执行）
+### 目录改名（已准备一键脚本）
 
-| 目录 | 大小 |
-|---|---|
-| `desktop\build-artifacts\electron` | 807 MB |
-| `desktop\build-artifacts\personal-aumid` | 815 MB |
-| `desktop\build-artifacts\personal-genui` | 840 MB（切换稳定后） |
+当前工作树物理目录仍叫 `_cchaha_src_probe`；运行中的 exe 锁住路径，不能在 Agent 会话内改名。
 
-合计约 2.4 GB。**删除前确认没有进程从这些目录运行**；不要按路径通配杀进程。
+1. 双击桌面 `完成CC-Haha目录改名.cmd`。
+2. 按提示关闭所有个人版窗口；脚本会等待进程退出，然后把目录改名为 `CC-Haha_Personal`。
+3. 脚本自动重指 junction、更新文档/memory/权限规则里的绝对路径，并重启个人版。
+4. 日志：`C:\Users\26056\Desktop\小试验\cc-haha-folder-migration.log`。
 
-```powershell
-# 先列出占用者，确认输出为空再删
-Get-Process 'Claude Code Haha' -ErrorAction SilentlyContinue | Select-Object Id, Path
-# Remove-Item -LiteralPath 'desktop\build-artifacts\electron' -Recurse -Force
-```
-
-### 目录命名
-
-工作树仍叫临时名 `_cchaha_src_probe`。规范化需要先关闭所有个人版实例（运行中的 exe 锁住路径），然后：
-
-1. 重命名目录 → 例如 `CC-Haha_Personal`。
-2. 重指 junction `cc-haha-personal*` 的 Target。
-3. 更新快捷方式 Target。
-4. 同步改 `update-personal.ps1` 文档里的绝对路径、`SUMMARY.md`、`UPDATE_GUIDE.md` 与 memory。
-
-未完成前，所有命令仍使用 `C:\Users\26056\Desktop\小试验\_cchaha_src_probe`。
+改名前不要手动移动目录；改名后 `update-personal.ps1` / `verify-personal.ps1` 仍用 `$PSScriptRoot`，无需改代码。
