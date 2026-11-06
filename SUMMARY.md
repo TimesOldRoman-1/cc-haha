@@ -13,8 +13,8 @@
 | 上游仓库 | `NanmiCoder/cc-haha`（remote `upstream`） |
 | 上游版本 | v0.7.7 / `fbbebdee` |
 | 个人仓库 | `TimesOldRoman-1/cc-haha`（remote `origin`） |
-| 个人分支 | `personal`，HEAD `87c5ef70`（GenUI 渲染；宿主注入尚未提交） |
-| 工作树 | `C:\Users\26056\Desktop\小试验\_cchaha_src_probe` |
+| 个人分支 | `personal`（当前 HEAD 以 `git log -1` 为准） |
+| 工作树 | `C:\Users\26056\Desktop\小试验\CC-Haha_Personal` |
 
 ## 功能地图
 
@@ -78,11 +78,12 @@ ASCII junction：
 - [x] 删除全局 `~/.claude/CLAUDE.md` 的临时 GenUI 规则。
 - [x] 提交宿主注入 + 校验/更新管线 + 文档，推送 `personal` / `personal-v0.7.7` 到 `b8672d7f`。
 - [x] 清理旧构建（`electron`/`personal-aumid`/`personal-genui`，约 2.4 GB）。
-- [ ] 目录改名：双击桌面 `cc-haha-folder-migration.cmd`（或 `完成CC-Haha目录改名.cmd`），按提示关闭个人版；脚本会自动改名、修 junction、更新路径并重启。
-- [ ] 改名完成后确认 `update-personal.ps1` / `verify-personal.ps1` 在新路径下仍可用（脚本用 `$PSScriptRoot`，预期无需改动）。
+- [x] 目录改名（2026-11-06 20:18）：`_cchaha_src_probe` → `CC-Haha_Personal`；junction、文档、memory、权限规则路径已自动更新。
+- [x] 桌面脚本已归档到 `小试验/CC-Haha_GenUI增强/01_中间文件与脚本/`，桌面不再放脚本。
+- [ ] 把迁移脚本产生的路径改动提交并推送（`git status` 里的 `SUMMARY.md` / `UPDATE_GUIDE.md`）。
 
 ## 自评
 
 - 好：6 项功能都有源文件标记和回归测试；更新脚本把「fetch → rebase → 校验 → 构建 → 校验产物」串成一条命令；功能地图让冲突处理有据可查。
-- 不好：工作台还没有渲染级测试；目录改名需要关闭宿主，只能由迁移脚本在退出后完成。
-- 下次：给工作台补一个 store 打桩的渲染测试；改名后更新 memory 里的绝对路径（迁移脚本已包含这一步）。
+- 不好：工作台还没有渲染级测试。
+- 下次：给工作台补一个 store 打桩的渲染测试。

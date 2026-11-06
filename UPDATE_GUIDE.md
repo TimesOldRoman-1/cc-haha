@@ -6,12 +6,12 @@
 
 > Agent 可能就跑在个人版里。**不要为了构建关应用**；默认暂存输出 `personal-next` 与运行中的 `personal-genui-inject` 是不同目录。只有切换才需要用户手动退出。
 
-0. 环境：工作树 `C:\Users\26056\Desktop\小试验\_cchaha_src_probe`，分支 `personal`；上游 `NanmiCoder/cc-haha`（`upstream`），origin `TimesOldRoman-1/cc-haha`。
+0. 环境：工作树 `C:\Users\26056\Desktop\小试验\CC-Haha_Personal`，分支 `personal`；上游 `NanmiCoder/cc-haha`（`upstream`），origin `TimesOldRoman-1/cc-haha`。
 1. 看上游：`git fetch upstream --tags` → `git log --oneline -5 upstream/main` → `git show upstream/main:desktop/package.json | grep version`。
 2. 清工作树：提交个人改动（源码 + 文档 + `verify-personal.ps1` + `更新个人版.cmd`）。构建会改写的 `desktop/src-tauri/resources/preview-agent.js` 由更新脚本自动 stash，不需要手动处理。
 3. 跑更新（**必须用绝对路径**，bash 会把 `.\` 的反斜杠吃掉），或双击 `更新个人版.cmd`：
    ```powershell
-   powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\26056\Desktop\小试验\_cchaha_src_probe\update-personal.ps1" -Build
+   powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\26056\Desktop\小试验\CC-Haha_Personal\update-personal.ps1" -Build
    ```
 4. 脚本在 rebase 后自动跑 `verify-personal.ps1`；**任一功能标记或测试失败就停**，不会打包。
 5. 冲突：常见仍是 `desktop/src/components/layout/Sidebar.tsx` 的 lucide import（保留上游图标 + `LayoutDashboard`）。按下面「功能地图」找对应文件；`git add` 后 `$env:GIT_EDITOR="true"; git rebase --continue`。
@@ -269,7 +269,7 @@ bun run test -- --run src/components/genui/GenuiRenderer.test.tsx src/components
 
 **已知限制**：当前只在 JSON 完整后挂载 UI（流式中途仍显示代码块）；dsh-genui 官方的逐节点流式渲染没有接。需要时再引入其 partial parser。
 
-## 十、切换、清理与目录命名（2026-11-06）
+## 十、切换、清理与目录迁移（2026-11-06）
 
 ### 当前构建布局
 
@@ -289,13 +289,10 @@ ASCII junction：`cc-haha-personal-genui-inject`（当前）、`cc-haha-personal
 3. 宿主注入 + 校验/更新管线已提交并推送（`b8672d7f`）。
 4. 旧构建已删除，磁盘释放约 2.4 GB。
 
-### 目录改名（已准备一键脚本）
+### 目录迁移（2026-11-06 20:18 完成）
 
-当前工作树物理目录仍叫 `_cchaha_src_probe`；运行中的 exe 锁住路径，不能在 Agent 会话内改名。
-
-1. 双击桌面 `cc-haha-folder-migration.cmd`（或中文名 `完成CC-Haha目录改名.cmd`）。
-2. 按提示关闭所有个人版窗口；脚本会等待进程退出，然后把目录改名为 `CC-Haha_Personal`。
-3. 脚本自动重指 junction、更新文档/memory/权限规则里的绝对路径，并重启个人版。
-4. 日志：`C:\Users\26056\Desktop\小试验\cc-haha-folder-migration.log`。
-
-改名前不要手动移动目录；改名后 `update-personal.ps1` / `verify-personal.ps1` 仍用 `$PSScriptRoot`，无需改代码。
+- `_cchaha_src_probe` → `CC-Haha_Personal`。
+- 迁移脚本自动修复 junction、文档/memory/权限规则里的绝对路径，并重启个人版。
+- 日志：`C:\Users\26056\Desktop\小试验\cc-haha-folder-migration.log`。
+- 迁移辅助脚本已归档到 `小试验/CC-Haha_GenUI增强/01_中间文件与脚本/`（`migrate-personal-folder.ps1` + 两个旧 launcher），**桌面不再放脚本**。
+- 改名后 `update-personal.ps1` / `verify-personal.ps1` 仍用 `$PSScriptRoot`，无需改代码。
