@@ -100,3 +100,14 @@ git checkout personal
 | 后续 | 个人版独立 userData（主题不再被官方版覆盖） |
 
 `git log --oneline upstream/main..personal` 随时可看自己的提交。
+
+## 六、跨客户端技能（.agents/skills）
+
+本分支依赖上游的 `.agents/skills` 发现（`src/skills/skillRoots.ts`，基线 `59d7575`）。rebase 后先确认：
+
+```bash
+grep -n "AGENT_SKILLS_DIR" src/skills/skillRoots.ts
+grep -n "agents" src/utils/skills/skillChangeDetector.ts
+```
+
+若上游改动这段，保留 `.agents` 根；否则 ego-browser 等跨客户端技能会消失。ego lite 升级后还要重指 `~/.local/share/ego/active_version_dir`，详见 `PERSONAL_BRANCH.md` 的「跨客户端技能与 ego-browser」一节。

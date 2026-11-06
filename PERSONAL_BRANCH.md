@@ -80,6 +80,25 @@ git remote -v
 # upstream = https://github.com/NanmiCoder/cc-haha.git
 ```
 
+## ★ 跨客户端技能（.agents/skills）与 ego-browser
+
+本分支基线 `59d7575` 已包含跨客户端技能发现：`src/skills/skillRoots.ts` 会把 `~/.agents/skills` 作为技能根（默认开启）。因此 ego-browser 不需要改 fork 代码，只要保证三条链路不断：
+
+1. `~/.agents/skills/ego-browser` → `~/.local/share/ego/ego-skills`
+2. `~/.local/share/ego/ego-skills` → `~/.local/share/ego/active_version_dir/ego-skills/ego-browser`
+3. `~/.local/share/ego/active_version_dir` → 当前 ego lite 安装版本目录（2026-11-03：`C:\Program Files\Citro Labs\ego lite\Application\0.6.2.7`）
+
+**升级 ego lite 后必须重指第 3 条软链**，否则 `~/.local/bin/ego-browser` 和 CC-Haha 里的 `ego-browser` 技能会同时失效。验证：
+
+```bash
+ego-browser --version     # 期望 0.6.2.7 / chromium / node
+ego-browser skill | head  # 期望 [ego-browser:skill] ...
+```
+
+**不要**在 `~/.claude/settings.json` 设 `disableAgentSkillsDirectory: true`，也不要设环境变量 `CLAUDE_CODE_DISABLE_AGENT_SKILLS_DIR=1`；这两条会直接关掉 `.agents/skills` 根。CC-Haha 重启或新会话后，技能列表里应出现 `ego-browser`。
+
+**上游 rebase 时**：检查 `src/skills/skillRoots.ts` 仍包含 `AGENT_SKILLS_DIR`，且 `src/utils/skills/skillChangeDetector.ts` 仍监听 `.agents/skills`。若上游删改，按 `UPDATE_GUIDE.md` 的冲突流程保留这段。
+
 ## ★ 已知问题 / 待办
 
 - **自动更新**：`build.publish` 已指向自己的 fork（`TimesOldRoman-1/cc-haha`）；`--dir` 包不生成 `app-update.yml`，实际不会自动更新。只有将来出 NSIS 安装包时才需要再确认。
