@@ -111,3 +111,19 @@ grep -n "agents" src/utils/skills/skillChangeDetector.ts
 ```
 
 若上游改动这段，保留 `.agents` 根；否则 ego-browser 等跨客户端技能会消失。ego lite 升级后还要重指 `~/.local/share/ego/active_version_dir`，详见 `PERSONAL_BRANCH.md` 的「跨客户端技能与 ego-browser」一节。
+
+## 七、v0.7.7+ 构建：agent-desktop 原生 sidecar
+
+v0.7.7 起 `bun run build:sidecars` 会用 Rust 编译 `native/agent-desktop`（`cargo +stable`）。本机没有 cargo 时**不要装 Rust**：官方安装包 `C:\Claude Code Haha\resources\app.asar.unpacked\src-tauri\binaries\` 已带同 commit 的预编译二进制。
+
+复制这三项到 `desktop/src-tauri/binaries/`：
+
+- `agent-desktop.exe`
+- `agent-desktop-manifest.json`
+- `agent-desktop-licenses/`
+
+`native-agent-desktop.ts` 会检查 manifest 的 `commit` 是否等于 `AGENT_DESKTOP_UPSTREAM_COMMIT`，一致就跳过 cargo；不一致（上游升级了 Rust pin）时，需要从新版官方安装包重新复制，或安装 Rust 后编译。
+
+**CRLF 误报**：`contrast.test.ts` 如果报 `Missing block: :root, [data-theme="white"]`，是 `globals.css` 被转成 CRLF；`.gitattributes` 已固定 `desktop/src/theme/globals.css text eol=lf`，rebase 后确认这条规则还在。
+
+**构建验证**：`personal-next\win-unpacked\Claude Code Haha.exe` 应显示 v0.7.7；`resources/app.asar.unpacked/src-tauri/binaries/` 下应有 `agent-desktop.exe` 和 `claude-sidecar-*.exe`。
