@@ -6,10 +6,11 @@ export type AppUserModelIdHost = {
   setAppUserModelId(id: string): void
 }
 
-// Must stay in sync with build.appId in desktop/package.json. Windows attributes
-// toast notifications (and taskbar pinning) to this AppUserModelID; without an
-// explicit call, notifications from a dev/unpackaged run can silently fail to show.
-export const WINDOWS_APP_USER_MODEL_ID = 'com.claude-code-haha.desktop'
+// Personal fork: upstream uses build.appId (com.claude-code-haha.desktop), which
+// collides with an official install sharing the same Start Menu shortcut. Windows
+// then routes toast activations to the official exe. Keep a fork-specific AUMID so
+// this build's notifications open this build; taskbar pinning is separated too.
+export const WINDOWS_APP_USER_MODEL_ID = 'com.claude-code-haha.desktop.personal'
 
 export function applyWindowsAppUserModelId(
   app: AppUserModelIdHost,

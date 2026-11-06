@@ -67,6 +67,8 @@ git status
 | `desktop/src/stores/tabStore.ts` | `HOME_TAB_ID` + `home` 类型 | 与上游改动合并 |
 | `desktop/src/components/layout/ContentRouter.tsx` | `home` 分支 | 与上游改动合并 |
 | `desktop/src/components/layout/Sidebar.tsx` | 工作台入口 | 与上游改动合并 |
+| `desktop/electron/services/appIdentity.ts` | Windows AUMID 改为 `com.claude-code-haha.desktop.personal` | 保留个人 AUMID；详见下文「八」 |
+| `desktop/electron/services/appIdentity.test.ts` | 断言 AUMID = `${build.appId}.personal` | 保留个人断言 |
 
 **如果上游给 `--cc-*` 加了新变量**：要在 deepseek 块里补上，否则新组件在你的主题下会拿到未定义值。补完跑测试，`contrast.test.ts` 会告诉你哪个颜色不达标。
 
@@ -148,3 +150,25 @@ v0.7.7 起 `bun run build:sidecars` 会用 Rust 编译 `native/agent-desktop`（
 **CRLF 误报**：`contrast.test.ts` 如果报 `Missing block: :root, [data-theme="white"]`，是 `globals.css` 被转成 CRLF；`.gitattributes` 已固定 `desktop/src/theme/globals.css text eol=lf`，rebase 后确认这条规则还在。
 
 **构建验证**：`personal-next\win-unpacked\Claude Code Haha.exe` 应显示 v0.7.7；`resources/app.asar.unpacked/src-tauri/binaries/` 下应有 `agent-desktop.exe` 和 `claude-sidecar-*.exe`。
+
+## 八、Windows 通知身份（个人版 AUMID，2026-11-06）
+
+个人版与官方版不能再共用 AppUserModelID，否则点击个人版的通知会启动官方 exe：
+
+- 官方安装包开始菜单 `Claude Code Haha.lnk`：AUMID `com.claude-code-haha.desktop`，ToastActivatorCLSID → `C:\Claude Code Haha\Claude Code Haha.exe`
+- 个人分支 `desktop/electron/services/appIdentity.ts` 使用 `com.claude-code-haha.desktop.personal`
+- 个人版首次发通知时，Electron 自动创建/改写开始菜单 `Electron.lnk`（exe 版本资源 ProductName 是 Electron），AUMID 为个人值、CLSID 指向个人 exe；官方快捷方式不动
+
+**rebase 时**：上游若改 `appIdentity.ts` / `appIdentity.test.ts`，保留个人 AUMID 与测试断言；不要把 `build.appId` 改成个人值（macOS bundle id 和 computer-use 签名标识都依赖它）。验证：
+
+```powershell
+# 两个 AUMID 必须各自唯一
+$sh = New-Object -ComObject Shell.Application
+$p = $sh.Namespace("$env:APPDATA\Microsoft\Windows\Start Menu\Programs")
+Get-ChildItem "$env:APPDATA\Microsoft\Windows\Start Menu\Programs" -Filter *.lnk |
+  ForEach-Object { $i=$p.ParseName($_.Name); "$($_.Name) -> $($i.ExtendedProperty('System.AppUserModel.ID'))" }
+```
+
+预期：`Claude Code Haha.lnk -> com.claude-code-haha.desktop`，`Electron.lnk -> com.claude-code-haha.desktop.personal`。
+
+**注意**：旧版个人包（共用官方 AUMID）如果还在磁盘上，运行它会把 `Electron.lnk` 改回旧 AUMID，通知又会跑到官方版。切到新版后不要再启动旧包；留作回退时先确认。

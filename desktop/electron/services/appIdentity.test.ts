@@ -22,10 +22,10 @@ describe('applyWindowsAppUserModelId', () => {
     }
   })
 
-  it('keeps the AppUserModelID in sync with build.appId in package.json', () => {
+  it('uses a personal-specific AppUserModelID derived from build.appId', () => {
     const packageJsonPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'package.json')
     const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as { build?: { appId?: string } }
-    expect(WINDOWS_APP_USER_MODEL_ID).toBe(pkg.build?.appId)
+    expect(WINDOWS_APP_USER_MODEL_ID).toBe(`${pkg.build?.appId}.personal`)
   })
 })
 
