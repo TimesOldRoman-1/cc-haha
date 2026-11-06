@@ -293,7 +293,7 @@ ASCII junction：`cc-haha-personal-genui-inject`（当前）、`cc-haha-personal
 
 当前工作树物理目录仍叫 `_cchaha_src_probe`；运行中的 exe 锁住路径，不能在 Agent 会话内改名。
 
-1. 双击桌面 `完成CC-Haha目录改名.cmd`。
+1. 双击桌面 `cc-haha-folder-migration.cmd`（或中文名 `完成CC-Haha目录改名.cmd`）。
 2. 按提示关闭所有个人版窗口；脚本会等待进程退出，然后把目录改名为 `CC-Haha_Personal`。
 3. 脚本自动重指 junction、更新文档/memory/权限规则里的绝对路径，并重启个人版。
 4. 日志：`C:\Users\26056\Desktop\小试验\cc-haha-folder-migration.log`。

@@ -78,7 +78,7 @@ ASCII junction：
 - [x] 删除全局 `~/.claude/CLAUDE.md` 的临时 GenUI 规则。
 - [x] 提交宿主注入 + 校验/更新管线 + 文档，推送 `personal` / `personal-v0.7.7` 到 `b8672d7f`。
 - [x] 清理旧构建（`electron`/`personal-aumid`/`personal-genui`，约 2.4 GB）。
-- [ ] 目录改名：双击桌面 `完成CC-Haha目录改名.cmd`，按提示关闭个人版；脚本会自动改名、修 junction、更新路径并重启。
+- [ ] 目录改名：双击桌面 `cc-haha-folder-migration.cmd`（或 `完成CC-Haha目录改名.cmd`），按提示关闭个人版；脚本会自动改名、修 junction、更新路径并重启。
 - [ ] 改名完成后确认 `update-personal.ps1` / `verify-personal.ps1` 在新路径下仍可用（脚本用 `$PSScriptRoot`，预期无需改动）。
 
 ## 自评
