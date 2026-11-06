@@ -1,7 +1,7 @@
 # CC-Haha 个人定制分支（personal）
 
 上游：https://github.com/NanmiCoder/cc-haha（MIT）
-基线：`59d7575`（2026-11-01）
+当前基线：v0.7.7 / `fbbebdee`（2026-11-06）；最初基线 `59d7575`（2026-11-01）
 工作树：`desktop/`（Electron + React 18 + Tailwind v4），CLI 源码在仓库根 `src/`
 
 > 个人分支说明，不包含任何 API key、provider 配置或本机路径。
@@ -17,7 +17,8 @@
 3. **GenUI：把 `dsh-ui` 围栏渲染成交互组件**（2026-11-06）
    - 依赖 `@changfenhuang/dsh-genui@0.15.0`（MIT），复用其 host-agnostic `./embed` 渲染器；CC-Haha 只补 JSON 解析、DSH 主题 token 桥接、引擎资产与 action 回传。
    - `MarkdownRenderer` 遇到 ` ```dsh-ui ` 围栏 → `components/genui/GenuiRenderer`；流式中途或 JSON 不合法时回退原代码块。
-   - 组件 action（按钮/表单提交）通过 `useChatStore.sendMessage` 以 `[genui-action] ...` 消息回传给当前会话；模型侧靠 `~/.claude/skills/genui/SKILL.md` 学会围栏语法。
+   - 组件 action（按钮/表单提交）通过 `useChatStore.sendMessage` 以 `[genui-action] ...` 消息回传给当前会话。
+   - 模型侧：`src/server/services/genuiSystemPrompt.ts` 的紧凑提示（约 1.1k 字符 / 400–600 tokens）由 `conversationService.buildSessionCliArgs` 通过 `--append-system-prompt` 注入主会话；完整字段仍按需加载 `~/.claude/skills/genui/SKILL.md`。团队 worker 不注入。
    - mermaid / echarts / three / maplibre / icons 引擎由 `scripts/copy-genui-assets.ts` 从 node_modules 复制到 `public/genui-assets`，随构建进入 asar。
    - `@deepseek-ai/dsh-client-ui-primitives` 用 `components/genui/dshPrimitivesShim.tsx` 替代（Vite / Vitest alias + tsconfig paths）。
    - 视觉验证：`genui-preview.html` + `scripts/genui-preview-main.cjs` 在 file:// 下跑通浅色/深潮两套主题、Mermaid、ECharts、KaTeX 与按钮 action。
@@ -26,6 +27,13 @@
    - 上游的 `WINDOWS_APP_USER_MODEL_ID` 与官方安装包共用 `com.claude-code-haha.desktop`。Windows 用开始菜单里该 AUMID 的快捷方式解析 toast 激活，而官方安装的 `Claude Code Haha.lnk` 指向官方 exe；点个人版发出的通知会启动官方版。
    - 个人版改为 `com.claude-code-haha.desktop.personal`（`electron/services/appIdentity.ts`；未改 `build.appId`，避免影响 macOS/computer-use 标识）。
    - Electron 在首次发通知时会自己创建/改写开始菜单的 `Electron.lnk`（名字来自 exe 的 ProductName 版本资源）并注册 `Electron Notification Activator` CLSID；官方 `Claude Code Haha.lnk` 保持不变。两者 AUMID 不再重叠，通知只会回到各自版本。
+
+5. **GenUI 宿主强制注入**（2026-11-06）
+   - `src/server/services/genuiSystemPrompt.ts` 的紧凑提示（1,087 字符 / 1,703 字节 ≈ 400–600 tokens）由 `conversationService.buildSessionCliArgs` 通过 `--append-system-prompt` 注入主会话；完整字段仍按需加载 `genui` skill（约 12k–13k tokens）。
+   - 团队 worker / subagent 不注入（正文不渲染成聊天 UI）；side chat 同时保留 `SIDE_CHAT_BOUNDARY`。
+   - 回归：`bun test -t "GenUI" src/server/__tests__/conversation-service.test.ts`（2 passed）。
+
+一键功能校验：`verify-personal.ps1`（23 项源标记 + 311 项桌面测试 + 2 项注入测试；`-BuildDir` 追加产物校验）。
 
 ## 构建
 
@@ -36,8 +44,8 @@ cd desktop && bun install
 cd ../mobile && bun install
 cd ../adapters && bun install
 
-# 前端 + Electron 主进程
-cd desktop && bun run build && bun run build:electron
+# sidecar（server 代码含宿主注入）+ 前端 + Electron 主进程
+cd desktop && bun run build:sidecars && bun run build && bun run build:electron
 
 # 出免安装目录到个人版专用目录（不碰官方安装）
 bunx electron-builder --dir --publish never --config.directories.output=build-artifacts/personal-next
@@ -60,10 +68,17 @@ app.setPath('userData', path.join(app.getPath('appData'), 'claude-code-desktop-p
 
 ## 验证
 
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\verify-personal.ps1
+# 23 项源标记 + 311 项桌面测试（主题 234 + Markdown 65 + GenUI 4 + AUMID 8）+ 2 项注入测试
+```
+
+只跑主题：
+
 ```bash
 cd desktop
 bun run test -- --run src/theme/globals.test.ts src/theme/bootstrapScript.test.ts src/theme/contrast.test.ts
-# 224 passed（含新主题的 WCAG 对比度）
+# 234 passed（含新主题的 WCAG 对比度）
 ```
 
 运行打包产物验证界面：
@@ -76,13 +91,15 @@ python _verify_workbench.py    # 用独立 profile + 关单实例锁，CDP 截�
 
 ## ★ 更新跟进（上游发新版后）
 
-先关掉个人版，然后一条命令：
+双击 `更新个人版.cmd`，或一条命令：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\update-personal.ps1 -Build
+powershell -NoProfile -ExecutionPolicy Bypass -File .\update-personal.ps1 -Build
 ```
 
-脚本会检查 `personal-next` 是否被占用、fetch + rebase、重新打包到 `build-artifacts/personal-next/`。冲突处理清单见 `UPDATE_GUIDE.md`。
+脚本顺序：检查 `personal-next` 是否被占用 → 清工作树（自动 stash 生成的 `preview-agent.js`）→ fetch + rebase → **跑 `verify-personal.ps1` 校验 6 项功能** → 四处 `bun install` → 重新构建 sidecar / renderer / Electron → 打包到 `build-artifacts/personal-next/` → 再校验产物。
+
+只有目标输出目录被运行中的实例占用时才需要关应用；当前运行的 `personal-genui` 与 `personal-next` 是不同目录，可以并排构建。冲突处理清单见 `UPDATE_GUIDE.md`；切换/清理见 §十。
 
 远端已配好：
 
