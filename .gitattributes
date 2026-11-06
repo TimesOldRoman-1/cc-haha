@@ -1,0 +1,4 @@
+# Keep the theme CSS as LF on Windows checkouts. `contrast.test.ts` reads the
+# working file directly and reports "Missing block" when core.autocrlf converts
+# it to CRLF.
+desktop/src/theme/globals.css text eol=lf
