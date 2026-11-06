@@ -2,9 +2,30 @@
 
 你的改动都在 `personal` 分支上，上游更新只是多了一些新提交。做法是：**把你的提交重新接到上游最新代码后面**（rebase），而不是重新改一遍。
 
+## 零、快速更新清单（2026-11-06 实战）
+
+> 当前 Agent 可能就跑在个人版里。**不要为了构建去关应用**；构建输出是 `personal-next`，和运行中的 `electron\win-unpacked` 是不同路径。只有最后切换才需要用户手动退出。
+
+0. 环境：工作树 `C:\Users\26056\Desktop\小试验\_cchaha_src_probe`，分支 `personal`；上游 `NanmiCoder/cc-haha`（`upstream`），origin `TimesOldRoman-1/cc-haha`。
+1. 看上游：`git fetch upstream --tags` → `git log --oneline -5 upstream/main` → `git show upstream/main:desktop/package.json | grep version`。
+2. 清工作树：提交有意的文档改动；把构建会改写的 `desktop/src-tauri/resources/preview-agent.js` stash；本地测试产物已在 `.git/info/exclude`。
+3. 跑更新（**必须用绝对路径**，bash 会把 `.\` 的反斜杠吃掉）：
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\26056\Desktop\小试验\_cchaha_src_probe\update-personal.ps1" -Build
+   ```
+4. 冲突：目前只会卡 `desktop/src/components/layout/Sidebar.tsx` 的 lucide import。保留上游图标，再加回 `LayoutDashboard`；`git add` 后 `GIT_EDITOR=true git rebase --continue`。
+5. 构建坑：
+   - `cargo` 报错：v0.7.7+ 的 `agent-desktop` 需要 Rust。**不要装 Rust**；从官方 `C:\Claude Code Haha\resources\app.asar.unpacked\src-tauri\binaries\` 复制 `agent-desktop.exe` + `agent-desktop-manifest.json` + `agent-desktop-licenses/` 到 `desktop/src-tauri/binaries/`。manifest commit 与 pin 一致时脚本会跳过 cargo。
+   - `electron-builder` 的 winCodeSign 符号链接报错：只要 `win-unpacked\Claude Code Haha.exe` 已生成就算成功。
+   - `contrast.test.ts` 报 `Missing block: :root, [data-theme="white"]`：`globals.css` 被 CRLF 化；`.gitattributes` 已固定 LF，必要时手动转回 LF。
+6. 测试：`cd desktop && bun run test -- --run src/theme/globals.test.ts src/theme/bootstrapScript.test.ts src/theme/contrast.test.ts`（期望 234+ 全过）。
+7. 无侵入验证：`python _verify_theme.py`；`python _verify_workbench.py`。后者用隔离 `APPDATA` + `CC_HAHA_ELECTRON_DISABLE_SINGLE_INSTANCE_LOCK=1` 启动 `personal-next`。**`electron/main.ts` 的 `app.setPath('userData')` 会覆盖 `--user-data-dir`，所以必须改 `APPDATA` 环境变量。**
+8. 推送：先推新分支 `git push origin personal:personal-v<version>`；确认后再 `git push --force-with-lease origin personal`。
+9. 切换：**Agent 不关宿主**。用户退出旧个人版 → 双击 `Claude Code Haha (Personal v<version>).lnk`（指向 ASCII junction `C:\Users\26056\cc-haha-personal`）→ 主题重选「深潮」。旧实例还在跑时，用 `Claude Code Haha (Personal Preview).cmd` 并排预览。
+
 ## 一、日常更新（一条命令）
 
-**先关掉正在运行的个人版**，然后：
+**如果当前运行的是 `personal-next` 里的包，先关掉它**；如果运行的是旧 `electron\win-unpacked`（包括 Agent 自己跑在里面），不要关——构建输出是另一个目录，可以并排进行。然后：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\update-personal.ps1 -Build
@@ -20,7 +41,7 @@ powershell -ExecutionPolicy Bypass -File .\update-personal.ps1 -Build
 
 没冲突就直接结束；有冲突会停下来，列出冲突文件。打包阶段即使 `electron-builder` 在签名缓存处报错（本机符号链接权限），只要 exe 已经生成，脚本仍视为成功。
 
-> 为什么必须输出到 `personal-next`：这个目录和你当前运行的 exe 是同一个，替换前必须先关应用；脚本会替你把这一关检查掉。官方安装目录 `C:\Claude Code Haha` 永远不碰。
+> 为什么输出到 `personal-next`：它是给下一版用的独立目录，避免覆盖你正在运行的旧包；脚本只检查 `personal-next` 是否被占用。只有确实要替换 `personal-next` 时才需要关应用。官方安装目录 `C:\Claude Code Haha` 永远不碰。
 
 ## 二、有冲突怎么办
 
