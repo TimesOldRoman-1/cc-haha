@@ -36,14 +36,16 @@
 |---|---|---|
 | `desktop\build-artifacts\personal-genui-inject` | 当前运行的 GenUI + 宿主注入版（条件式 UI） | 运行中（本次重启前） |
 | `desktop\build-artifacts\personal-ui-default` | 默认优先 UI 的新版 | 已打包，待重启切换 |
+| `desktop\build-artifacts\theme-rollback` | 主题时代功能集：v0.7.7 + 深潮主题 + 工作台 + profile 隔离（无 GenUI / AUMID） | 已打包，可随时切换 |
 | `desktop\build-artifacts\personal-next` | 更新脚本的默认暂存输出 / 回退版 | 每次 `-Build` 重建 |
 | `desktop\build-artifacts\genui-preview` | GenUI file:// 预览验证 | 测试用，23 MB |
 
-旧的 `electron`、`personal-aumid`、`personal-genui` 已删除（约 2.4 GB）。
+旧的 `electron`、`personal-aumid`、`personal-genui` 已删除（约 2.4 GB）；`theme-rollback` 是从 git `3e198207`（2026-11-01 主题提交在 v0.7.7 上的 rebase 版本）重新构建的，不是被删掉的旧二进制。
 
 ASCII junction：
 
 - `C:\Users\26056\cc-haha-personal-ui` → `personal-ui-default`（桌面 GenUI+Inject 快捷方式已指向它）
+- `C:\Users\26056\cc-haha-personal-theme` → `theme-rollback`（桌面 `Claude Code Haha (Personal Theme 2026-11-01).lnk`）
 - `C:\Users\26056\cc-haha-personal-genui-inject` → 当前运行版
 - `C:\Users\26056\cc-haha-personal` → `personal-next`（更新脚本的切换入口）
 
@@ -84,6 +86,8 @@ ASCII junction：
 - [x] 桌面脚本已归档到 `小试验/CC-Haha_GenUI增强/01_中间文件与脚本/`，桌面不再放脚本。
 - [x] 迁移脚本产生的路径改动已提交 `67fbad89`，默认优先 UI 提示已提交 `7c2bdb86`；两个 commit 已推送到自己的 fork（`origin/personal` + `personal-v0.7.7`，未动 upstream）。
 - [ ] 重启切换到 `personal-ui-default`（默认优先 UI）；桌面原 GenUI+Inject 快捷方式已指向新 junction。
+- [x] 主题回退版 `theme-rollback` 已构建（2026-11-07）：从 `3e198207` 重建，含深潮主题 + 工作台 + profile 隔离，无 GenUI/AUMID；桌面 `Claude Code Haha (Personal Theme 2026-11-01).lnk`。
+- [ ] 试用回退版后决定日常用哪个快捷方式；具体哪里「难用」请反馈，可在回退版上单独修，不必整体放弃。
 
 ## 自评
 
