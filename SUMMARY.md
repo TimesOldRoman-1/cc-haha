@@ -1,4 +1,6 @@
-# SUMMARY — CC-Haha 个人定制分支
+# SUMMARY — CC-Haha 主题版（`personal-theme`）
+
+> 2026-11-08：这是主题版维护线，**不含 GenUI**。日常更新请看 `THEME_BRANCH.md`；旧的 `update-personal.ps1` 已弃用，请用 `更新主题版.cmd` / `update-theme.ps1`。下面保留 2026-11-01 主题初版的历史记录。
 
 日期：2026-11-01
 

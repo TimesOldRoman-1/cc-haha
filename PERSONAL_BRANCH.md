@@ -1,5 +1,7 @@
 # CC-Haha 个人定制分支（personal）
 
+> 2026-11-08：当前为**主题版 `personal-theme`**，不含 GenUI。日常更新以 `THEME_BRANCH.md` 为准；`update-personal.ps1` 已弃用。完整 GenUI 线保留在 `personal` 分支，不要合并到这条线。
+
 上游：https://github.com/NanmiCoder/cc-haha（MIT）
 基线：`59d7575`（2026-11-01）
 工作树：`desktop/`（Electron + React 18 + Tailwind v4），CLI 源码在仓库根 `src/`
