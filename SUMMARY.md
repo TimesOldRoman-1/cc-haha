@@ -36,17 +36,19 @@
 |---|---|---|
 | `desktop\build-artifacts\personal-genui-inject` | 当前运行的 GenUI + 宿主注入版（条件式 UI） | 运行中（本次重启前） |
 | `desktop\build-artifacts\personal-ui-default` | 默认优先 UI 的新版 | 已打包，待重启切换 |
-| `desktop\build-artifacts\theme-rollback` | 主题时代功能集：v0.7.7 + 深潮主题 + 工作台 + profile 隔离（无 GenUI / AUMID） | 已打包，可随时切换 |
+| `desktop\build-artifacts\theme-rollback` | 旧主题版：v0.7.7 + 深潮 + 工作台 + profile 隔离；**无 AUMID 修复** | 旧包，仅回退 |
+| `desktop\build-artifacts\personal-theme-aumid` | 主题版 + AUMID 修复（`.personal`，通知不再拉起官方版） | 桌面 Theme 快捷方式指向它，待重启 |
 | `desktop\build-artifacts\personal-next` | 更新脚本的默认暂存输出 / 回退版 | 每次 `-Build` 重建 |
 | `desktop\build-artifacts\genui-preview` | GenUI file:// 预览验证 | 测试用，23 MB |
 
-旧的 `electron`、`personal-aumid`、`personal-genui` 已删除（约 2.4 GB）；`theme-rollback` 是从 git `3e198207`（2026-11-01 主题提交在 v0.7.7 上的 rebase 版本）重新构建的，不是被删掉的旧二进制。
+旧的 `electron`、`personal-aumid`、`personal-genui` 已删除（约 2.4 GB）；主题版是从 git `3e198207` 重建的，不是被删掉的旧二进制。`personal-theme-aumid` 在主题版上额外应用了 `289792ef` 的 AUMID 修复。
 
 ASCII junction：
 
 - `C:\Users\26056\cc-haha-personal-ui` → `personal-ui-default`（桌面 GenUI+Inject 快捷方式已指向它）
-- `C:\Users\26056\cc-haha-personal-theme` → `theme-rollback`（桌面 `Claude Code Haha (Personal Theme 2026-11-01).lnk`）
-- `C:\Users\26056\cc-haha-personal-genui-inject` → 当前运行版
+- `C:\Users\26056\cc-haha-personal-theme` → `theme-rollback`（旧主题包）
+- `C:\Users\26056\cc-haha-personal-theme-aumid` → `personal-theme-aumid`（桌面 Theme 快捷方式）
+- `C:\Users\26056\cc-haha-personal-genui-inject` → 旧 GenUI 注入版
 - `C:\Users\26056\cc-haha-personal` → `personal-next`（更新脚本的切换入口）
 
 官方安装目录 `C:\Claude Code Haha` 永远不碰。
@@ -87,7 +89,8 @@ ASCII junction：
 - [x] 迁移脚本产生的路径改动已提交 `67fbad89`，默认优先 UI 提示已提交 `7c2bdb86`；两个 commit 已推送到自己的 fork（`origin/personal` + `personal-v0.7.7`，未动 upstream）。
 - [ ] 重启切换到 `personal-ui-default`（默认优先 UI）；桌面原 GenUI+Inject 快捷方式已指向新 junction。
 - [x] 主题回退版 `theme-rollback` 已构建（2026-11-07）：从 `3e198207` 重建，含深潮主题 + 工作台 + profile 隔离，无 GenUI/AUMID；桌面 `Claude Code Haha (Personal Theme 2026-11-01).lnk`。
-- [ ] 试用回退版后决定日常用哪个快捷方式；具体哪里「难用」请反馈，可在回退版上单独修，不必整体放弃。
+- [x] 主题版 AUMID 修复（2026-11-08）：`personal-theme-aumid` 已构建并编译出 `com.claude-code-haha.desktop.personal`；Theme 快捷方式已指向它，待重启。
+- [ ] 重启 Theme 版到 `personal-theme-aumid`；之后调用 PowerShell/发通知不应再拉起官方版。若仍出现，检查是否还有旧的 AUMID 快捷方式缓存。
 
 ## 自评
 
