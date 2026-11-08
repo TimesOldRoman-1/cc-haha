@@ -85,6 +85,33 @@ export async function buildNativeAgentDesktop({
   if (upstream.commit !== AGENT_DESKTOP_UPSTREAM_COMMIT) {
     throw new Error('[native-agent-desktop] Vendored upstream commit does not match the build pin')
   }
+
+  // Reuse an already-staged binary when it was built from the same pinned
+  // upstream commit. This keeps local/offline packaging working without Rust;
+  // fresh checkouts still fall through to cargo.
+  const stagedManifestPath = path.join(binariesDir, 'agent-desktop-manifest.json')
+  try {
+    const staged = JSON.parse(await readFile(stagedManifestPath, 'utf8')) as {
+      commit?: string
+      targetTriple?: string
+    }
+    if (staged.commit === upstream.commit && staged.targetTriple === targetTriple) {
+      const present = await Promise.all(target.binaries.map(async name => {
+        try {
+          return (await stat(path.join(binariesDir, name))).isFile()
+        } catch {
+          return false
+        }
+      }))
+      if (present.every(Boolean)) {
+        console.log(`[native-agent-desktop] Reusing staged ${target.binaries.join(', ')} for ${targetTriple}`)
+        return target.binaries.map(name => path.join(binariesDir, name))
+      }
+    }
+  } catch {
+    // No usable staged manifest; build from source below.
+  }
+
   const targetRoot = path.join(sourceRoot, 'target')
   const args = [
     'cargo', '+stable', 'build', '--locked', '--offline',
