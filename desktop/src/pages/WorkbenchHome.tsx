@@ -100,7 +100,7 @@ export function WorkbenchHome() {
     <div className="flex-1 overflow-y-auto bg-[var(--color-surface)]">
       <div className="mx-auto max-w-[960px] px-10 pb-16 pt-10">
         <header>
-          <div className="flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
+          <div className="flex items-center gap-2 text-[12px] font-medium text-[var(--color-text-tertiary)]">
             <LayoutDashboard size={14} strokeWidth={1.75} aria-hidden="true" />
             {t('workbench.title')}
           </div>
