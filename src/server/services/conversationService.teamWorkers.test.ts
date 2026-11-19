@@ -30,6 +30,7 @@ test('worker CLI has its own SDK identity and applies the approved preset and mo
   service.resolveCliArgs = (args: string[]) => args
   const args = service.buildSessionCliArgs('child', 'ws://127.0.0.1/sdk/child?token=fake', false, { model: 'vendor/precise', providerId: 'provider-b', teamWorker: worker }) as string[]
   expect(args).not.toContain('--no-session-persistence')
+  expect(args).not.toContain('--append-system-prompt')
   expect(args[args.indexOf('--agent-id') + 1]).toBe('researcher@approved')
   expect(args[args.indexOf('--parent-session-id') + 1]).toBe('parent')
   expect(args[args.indexOf('--model') + 1]).toBe('vendor/precise')

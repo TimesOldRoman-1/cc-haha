@@ -4,6 +4,7 @@ import { LoaderCircle } from 'lucide-react'
 import DOMPurify from 'dompurify'
 import katex from 'katex'
 import 'katex/dist/katex.min.css'
+import 'katex/contrib/mhchem'
 import { marked, type Tokens } from 'marked'
 // The `md-code-link` variant below is spelled out literally so Tailwind can see
 // it; MarkdownRenderer.test.tsx asserts it against CODE_LINK_CLASS.
@@ -85,6 +86,15 @@ const MERMAID_LANGUAGE = 'mermaid'
 const PLAINTEXT_LANGUAGES = new Set(['', 'text', 'plaintext', 'plain'])
 const MERMAID_DIAGRAM_START = /^(graph|flowchart|sequenceDiagram|classDiagram|stateDiagram(?:-v2)?|erDiagram|journey|gantt|pie|gitGraph|mindmap|timeline|requirementDiagram|quadrantChart|xychart-beta|sankey-beta|block-beta|packet-beta|architecture|kanban)\b/i
 const CODE_FENCE_START = /^ {0,3}(`{3,}|~{3,})/
+// Display environments models write without $$ delimiters. KaTeX supports the
+// starred variants too; the set is keyed by the base name.
+const BARE_MATH_ENVIRONMENTS = new Set([
+  'equation', 'align', 'alignat', 'gather', 'multline', 'displaymath',
+  'aligned', 'alignedat', 'gathered', 'split', 'cases',
+  'matrix', 'pmatrix', 'bmatrix', 'Bmatrix', 'vmatrix', 'Vmatrix', 'array',
+])
+const BARE_MATH_BEGIN = /^\\begin\{([A-Za-z]+\*?)\}/
+const LATEX_HINT = /\\[A-Za-z]+|[\^_{}]/
 const MATH_RENDER_CACHE_LIMIT = 200
 const mathRenderCache = new Map<string, string>()
 const MARKDOWN_SANITIZE_CONFIG = {
@@ -198,6 +208,42 @@ function findUnescapedDelimiter(text: string, delimiter: string, fromIndex: numb
   return -1
 }
 
+/** True when only indentation precedes `index` on its line. */
+function startsBlockLine(text: string, index: number): boolean {
+  const lineStart = text.lastIndexOf('\n', index - 1) + 1
+  return text.slice(lineStart, index).trim() === ''
+}
+
+/**
+ * Consume a bare display environment (`\begin{align}…\end{align}`) that a model
+ * wrote without `$$` delimiters. Delimited math is handled first by
+ * consumeMath, which skips over any environment nested inside it.
+ */
+function consumeBareEnvironment(
+  segment: string,
+  mathBlocks: MathBlock[],
+  start: number,
+): { replacement: string; end: number } | null {
+  if (!startsBlockLine(segment, start)) return null
+  const begin = BARE_MATH_BEGIN.exec(segment.slice(start))
+  if (!begin) return null
+  const environment = begin[1]!
+  if (!BARE_MATH_ENVIRONMENTS.has(environment.replace(/\*$/, ''))) return null
+
+  const endTag = `\\end{${environment}}`
+  const end = segment.indexOf(endTag, start + begin[0].length)
+  if (end === -1) return null
+  const tex = segment.slice(start, end + endTag.length)
+  if (!tex.trim()) return null
+
+  const id = `math-${mathBlocks.length}`
+  mathBlocks.push({ id, tex, displayMode: true })
+  return {
+    replacement: `\n\n<div data-math-id="${id}"></div>\n\n`,
+    end: end + endTag.length,
+  }
+}
+
 function consumeMath(
   content: string,
   mathBlocks: MathBlock[],
@@ -214,7 +260,9 @@ function consumeMath(
   if (!tex.trim()) return null
   if (!displayMode && /[\n\r]/.test(tex)) return null
   if (open === '$' && (/\s/.test(content[contentStart] ?? '') || /\s/.test(content[end - 1] ?? ''))) {
-    return null
+    // `$ x^2 $` is still math; `$5 to $10` is currency. A padded delimiter only
+    // disqualifies the span when its body has no LaTeX syntax at all.
+    if (!LATEX_HINT.test(tex)) return null
   }
 
   const id = `math-${mathBlocks.length}`
@@ -239,6 +287,15 @@ function extractMathFromSegment(segment: string, mathBlocks: MathBlock[]): strin
       if (end !== -1) {
         output += segment.slice(index, end + ticks.length)
         index = end + ticks.length
+        continue
+      }
+    }
+
+    if (segment[index] === '\\') {
+      const bare = consumeBareEnvironment(segment, mathBlocks, index)
+      if (bare) {
+        output += bare.replacement
+        index = bare.end
         continue
       }
     }
@@ -605,8 +662,8 @@ const BASE_PROSE_CLASSES = `markdown-prose prose prose-sm min-w-0 max-w-none bre
   prose-th:bg-[var(--color-surface-container)] prose-th:px-3 prose-th:py-2 prose-th:text-left prose-th:text-xs prose-th:font-semibold prose-th:text-[var(--color-text-secondary)] prose-th:whitespace-normal prose-th:break-words prose-th:align-top prose-th:border-b prose-th:border-[var(--color-border)]
   prose-td:px-3 prose-td:py-2 prose-td:border-b prose-td:border-[var(--color-border)] prose-td:whitespace-normal prose-td:break-words prose-td:align-top
   [&_.katex]:[white-space:nowrap] [&_.katex]:[overflow-wrap:normal] [&_.katex]:[word-break:normal]
-  [&_.md-math-inline]:inline-flex [&_.md-math-inline]:max-w-full [&_.md-math-inline]:overflow-x-auto [&_.md-math-inline]:[vertical-align:-0.08em] [&_.md-math-inline_.katex]:text-[1.02em]
-  [&_.md-math-display]:my-5 [&_.md-math-display]:flex [&_.md-math-display]:max-w-full [&_.md-math-display]:justify-center [&_.md-math-display]:overflow-x-auto [&_.md-math-display]:px-1 [&_.md-math-display]:py-2 [&_.md-math-display]:[scrollbar-width:thin]
+  [&_.md-math-inline]:inline-flex [&_.md-math-inline]:max-w-full [&_.md-math-inline]:overflow-x-auto [&_.md-math-inline]:overflow-y-hidden [&_.md-math-inline]:[scrollbar-width:none] [&_.md-math-inline::-webkit-scrollbar]:hidden [&_.md-math-inline]:[vertical-align:-0.08em] [&_.md-math-inline_.katex]:text-[1.02em]
+  [&_.md-math-display]:my-5 [&_.md-math-display]:flex [&_.md-math-display]:max-w-full [&_.md-math-display]:justify-center [&_.md-math-display]:overflow-x-auto [&_.md-math-display]:overflow-y-hidden [&_.md-math-display]:px-1 [&_.md-math-display]:py-2 [&_.md-math-display]:[scrollbar-width:none] [&_.md-math-display::-webkit-scrollbar]:hidden
   [&_.md-math-display_.katex-display]:m-0 [&_.md-math-display_.katex]:text-[1.14em] [&_.md-math-display_.katex-html]:min-w-max
   [&_.md-table-wrap]:my-4 [&_.md-table-wrap]:overflow-x-auto [&_.md-table-wrap]:rounded-[var(--radius-md)] [&_.md-table-wrap]:border [&_.md-table-wrap]:border-[var(--color-border)] [&_.md-table-wrap]:bg-[var(--color-surface-container-lowest)]`
 

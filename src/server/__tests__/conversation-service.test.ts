@@ -8,6 +8,7 @@ import {
   DESKTOP_CLI_GRACEFUL_SHUTDOWN_TIMEOUT_MS,
 } from '../services/conversationService.js'
 import { diagnosticsService } from '../services/diagnosticsService.js'
+import { registerSideChat } from '../services/sideChatRegistry.js'
 import { hahaOAuthService } from '../services/hahaOAuthService.js'
 import { ProviderService } from '../services/providerService.js'
 import { sessionService } from '../services/sessionService.js'
@@ -1627,6 +1628,52 @@ describe('ConversationService', () => {
     expect(args).toContain('--include-partial-messages')
     expect(args).toContain('--sdk-url')
     expect(args).toContain('--replay-user-messages')
+  })
+
+  test('buildSessionCliArgs asks the desktop model to emit KaTeX math', () => {
+    const service = new ConversationService() as any
+    const args = service.buildSessionCliArgs(
+      '123e4567-e89b-12d3-a456-426614174000',
+      'ws://127.0.0.1:3456/sdk/test-session?token=test-token',
+      false,
+      { permissionMode: 'bypassPermissions' },
+    ) as string[]
+
+    const index = args.indexOf('--append-system-prompt')
+    expect(index).toBeGreaterThan(-1)
+    const prompt = args[index + 1] ?? ''
+    expect(prompt).toContain('KaTeX')
+    expect(prompt).toContain('$...$')
+    expect(prompt).toContain('\\ce{}')
+  })
+
+  test('buildSessionCliArgs merges the math hint with the side-chat boundary', () => {
+    const sideId = 'side-math-render'
+    registerSideChat({
+      sessionId: sideId,
+      parentSessionId: 'parent',
+      cliSessionId: 'cli-side',
+      resumePath: '/tmp/parent.jsonl',
+      resumeAt: '2026-01-01T00:00:00.000Z',
+      launchInfo: {},
+      createdAt: '2026-01-01T00:00:00.000Z',
+      started: true,
+      closed: false,
+    } as any)
+
+    const service = new ConversationService() as any
+    service.resolveCliArgs = (args: string[]) => args
+    const args = service.buildSessionCliArgs(
+      sideId,
+      'ws://127.0.0.1:3456/sdk/side?token=test-token',
+      false,
+    ) as string[]
+
+    const promptIndexes = args.flatMap((value, index) => value === '--append-system-prompt' ? [index] : [])
+    expect(promptIndexes).toHaveLength(1)
+    const prompt = args[promptIndexes[0]! + 1] ?? ''
+    expect(prompt).toContain('KaTeX')
+    expect(prompt).toContain('independent side conversation')
   })
 
   test('buildChildEnv asks desktop SDK sessions to wait briefly for MCP tools', async () => {

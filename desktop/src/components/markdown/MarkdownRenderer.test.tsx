@@ -195,6 +195,46 @@ describe('MarkdownRenderer', () => {
     expect(container.textContent).not.toContain('\\[')
   })
 
+  it('renders chemistry formulas through the mhchem extension', () => {
+    const { container } = render(
+      <MarkdownRenderer content={'钙钛矿 \\(\\ce{CH3NH3PbI3}\\) 的带隙'} />,
+    )
+
+    expect(container.querySelector('.katex')).toBeInTheDocument()
+    expect(container.innerHTML).not.toContain('color:#cc0000')
+  })
+
+  it('renders bare display environments without dollar delimiters', () => {
+    const { container } = render(
+      <MarkdownRenderer
+        content={'推导如下：\n\n\\begin{align}\na &= b + c \\\\\nd &= e + f\n\\end{align}\n\n完成。'}
+      />,
+    )
+
+    expect(container.querySelector('.md-math-display .katex')).toBeInTheDocument()
+    expect(container.textContent).not.toContain('\\begin{align}')
+  })
+
+  it('keeps bare environments inside code fences as code', () => {
+    render(
+      <MarkdownRenderer
+        content={'```latex\n\\begin{align}\na &= b\n\\end{align}\n```'}
+      />,
+    )
+
+    expect(screen.getByTestId('code-viewer')).toHaveTextContent('\\begin{align}')
+    expect(document.querySelector('.katex')).not.toBeInTheDocument()
+  })
+
+  it('accepts padded inline dollars only when the body is LaTeX', () => {
+    const { container } = render(
+      <MarkdownRenderer content={'公式 $ \\frac{dE}{dr} $，价格 $5 to $10。'} />,
+    )
+
+    expect(container.querySelectorAll('.katex')).toHaveLength(1)
+    expect(container.textContent).toContain('$5 to $10')
+  })
+
   it('renders complex display formulas without exposing TeX source', () => {
     const { container } = render(
       <MarkdownRenderer
@@ -230,6 +270,12 @@ describe('MarkdownRenderer', () => {
     expect(root.className).toContain('[&_.katex]:[white-space:nowrap]')
     expect(root.className).toContain('[&_.katex]:[overflow-wrap:normal]')
     expect(root.className).toContain('[&_.md-math-display]:justify-center')
+    expect(root.className).toContain('[&_.md-math-inline]:[scrollbar-width:none]')
+    expect(root.className).toContain('[&_.md-math-display]:[scrollbar-width:none]')
+    expect(root.className).toContain('[&_.md-math-display]:overflow-y-hidden')
+    expect(root.className).toContain('[&_.md-math-inline::-webkit-scrollbar]:hidden')
+    expect(root.className).toContain('[&_.md-math-display::-webkit-scrollbar]:hidden')
+    expect(root.className).not.toContain('[&_.md-math-display]:[scrollbar-width:thin]')
     expect(container.querySelector('.md-math-display .katex')).toBeInTheDocument()
   })
 

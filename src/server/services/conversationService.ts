@@ -1,5 +1,6 @@
 import { sanitizeRetryDiagnosticText } from '../../services/api/errorUtils.js'
 import { closeSideChatsForParent, getSideChat, isSideChatId, SIDE_CHAT_BOUNDARY } from './sideChatRegistry.js'
+import { appendMathRenderPrompt, MATH_RENDER_PROMPT } from './mathRenderPrompt.js'
 import { migrationMaintenance, waitForMigrationExit } from '../migrationMaintenance.js'
 import { powerActivityClock } from './powerActivityClock.js'
 import { SDKPromptSuggestionActivityMessageSchema } from '../../entrypoints/sdk/coreSchemas.js'
@@ -628,6 +629,13 @@ export class ConversationService {
   ): string[] {
     const side = getSideChat(sessionId)
     const dangerousMode = process.env.CLAUDE_DANGEROUS_MODE === '1'
+    // Desktop prose is rendered with KaTeX; team workers are subagents whose
+    // prose is not shown as chat UI, so they keep the stock prompt.
+    const appendSystemPrompt = options?.teamWorker
+      ? undefined
+      : side
+        ? appendMathRenderPrompt(SIDE_CHAT_BOUNDARY)
+        : MATH_RENDER_PROMPT
     const worktreeArgs =
       !shouldResume && repository?.worktree
         ? [
@@ -652,7 +660,8 @@ export class ConversationService {
       // Desktop chat depends on partial assistant deltas; without this the
       // server only sees the completed assistant message at turn end.
       '--include-partial-messages',
-      ...(side ? ['--resume', side.resumePath, '--resume-session-at', side.resumeAt, '--fork-session', '--session-id', side.cliSessionId, '--no-session-persistence', '--append-system-prompt', SIDE_CHAT_BOUNDARY] : shouldResume ? ['--resume', sessionId] : ['--session-id', sessionId]),
+      ...(side ? ['--resume', side.resumePath, '--resume-session-at', side.resumeAt, '--fork-session', '--session-id', side.cliSessionId, '--no-session-persistence'] : shouldResume ? ['--resume', sessionId] : ['--session-id', sessionId]),
+      ...(appendSystemPrompt ? ['--append-system-prompt', appendSystemPrompt] : []),
       ...(options?.teamWorker ? [
         '--agent-id', `${options.teamWorker.name}@${options.teamWorker.teamName}`,
         '--agent-name', options.teamWorker.name,

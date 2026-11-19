@@ -11,6 +11,7 @@
 | 基座 | 上游 v0.7.7 + 2026-11-01 主题提交（`3e198207`） |
 | 主题新提交 | AUMID 修复 + agent-desktop 复用 + `.gitattributes` LF 固定 |
 | 当前运行包 | `desktop\build-artifacts\personal-theme-aumid\win-unpacked` |
+| LaTeX 新包（待切换） | `desktop\build-artifacts\personal-theme-latex\win-unpacked`（2026-11-16 构建，验证 20/20） |
 | 桌面快捷方式 | `Claude Code Haha (Personal Theme 2026-11-01).lnk` → junction `C:\Users\26056\cc-haha-personal-theme-aumid` |
 | 远端 | `origin/personal-theme`（自己的 fork） |
 
@@ -23,8 +24,25 @@
 | userData 隔离 | `desktop/electron/main.ts`（`claude-code-desktop-personal`） |
 | AUMID 分离 | `desktop/electron/services/appIdentity.ts`（`com.claude-code-haha.desktop.personal`） |
 | 构建复用 | `desktop/scripts/native-agent-desktop.ts`、`.gitattributes` |
+| LaTeX/KaTeX 公式 | `desktop/src/components/markdown/MarkdownRenderer.tsx`、`desktop/src/types/katex-mhchem.d.ts`、`src/server/services/mathRenderPrompt.ts`、`src/server/services/conversationService.ts` |
 
 **不要加回**：`desktop/src/components/genui/**`、`src/server/services/genuiSystemPrompt.ts`、`@changfenhuang/dsh-genui`。`verify-theme.ps1` 会主动检查它们不存在。
+
+## LaTeX / KaTeX 公式（2026-11-16）
+
+上游 v0.7.7 的 `MarkdownRenderer` 本来就有 KaTeX（`$...$`、`$$...$$`、`\(...\)`、`\[...\]`）；这次补的是**让模型真的输出 LaTeX**和三个渲染边界：
+
+1. **运行时提示**：`src/server/services/mathRenderPrompt.ts` 定义简短提示（桌面端用 KaTeX，公式一律 LaTeX；不含客户端分流），`conversationService.ts` 的 `buildSessionCliArgs` 用 `--append-system-prompt` 注入。主会话单独注入；side chat 与 `SIDE_CHAT_BOUNDARY` 合并；team worker 跳过（其正文不作为聊天 UI 渲染）。
+2. **渲染增强**（`desktop/src/components/markdown/MarkdownRenderer.tsx`）：
+   - `katex/contrib/mhchem` → 支持 `\ce{CH3NH3PbI3}`（类型声明在 `desktop/src/types/katex-mhchem.d.ts`）。
+   - 裸环境：`\begin{equation|align|gather|multline...}...\end{...}` 不写 `$` 也能渲染。
+   - 首尾带空格的 `$ ... $`：内部含 `\command`/`^`/`_`/`{}` 才当公式，`$5 to $10` 仍是文本。
+   - 代码围栏/行内代码里的 LaTeX 仍按代码显示。
+   - **公式滚动条（2026-11-19）**：`md-math-inline` / `md-math-display` 加 `scrollbar-width:none`、`overflow-y:hidden`、`::-webkit-scrollbar:hidden`——保留横向滚动能力，但不再显示细小的上下/左右滚动条。
+   - **教训**：不要手动把新 `dist` 推进运行中的打包应用；应用从 `app.asar` 读打包资源，新 index 引用的新哈希资产不在 asar 清单会导致 `Desktop startup failed`。正确做法是构建到新目录。已还原旧 index 使旧包恢复启动；干净修复包为 `build-artifacts/personal-theme-latex-fix/win-unpacked`，`verify-theme.ps1 -SkipTests` 20/20；junction `C:\Users\26056\cc-haha-personal-theme-latex-fix` + 快捷方式 `Claude Code Haha (LaTeX Fix 2026-11-19).lnk`。
+3. **规则分流**：`.agents/skills/collaboration-style/SKILL.md` 的 `math_notation.md` 改为「有 KaTeX 的桌面端用 LaTeX；终端/VS Code chat 用 Unicode」。三个项目 CLAUDE.md 的旧「禁 LaTeX」尚未改（运行时提示已显式覆盖，等用户确认再同步）。
+
+验证：MarkdownRenderer 69/69；新增 server 测试 3/3；`verify-theme.ps1 -SkipTests` 20/20。用独立 profile + CDP 加载合成会话（`_math_verify.py`）核对：5 个 KaTeX 节点、0 错误、无裸 `$`/`\begin`、货币与代码围栏保持，KaTeX_Main 字体已加载。已知无关失败：conversation-service 全量有 7 条环境相关失败（超时/EBUSY），与本次改动无关。
 
 ## 上游更新流程
 
